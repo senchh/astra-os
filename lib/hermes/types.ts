@@ -4,6 +4,9 @@ export interface CronJob {
   id: string;
   name: string;
   scheduleDisplay: string;
+  schedule: string; // raw editable expression (e.g. "0 6 * * *", "30m")
+  prompt: string;
+  deliver: string;
   model: string;
   provider: string;
   enabled: boolean;

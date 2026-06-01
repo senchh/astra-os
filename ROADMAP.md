@@ -53,7 +53,7 @@ Two halves, fused:
 
 **A) Config writes** (Hermes-owned mutation via its CLI — never hand-edit the commented `config.yaml`):
 - [x] **Tools** — `/tools` toggles the 25 toolsets via `hermes tools enable/disable` (state lives outside `agent.disabled_toolsets`, so the CLI is the safe writer). Optimistic UI + revert-on-error. *First write feature — Astra is no longer read-only.*
-- [x] **Cron builder** — `/cron` now writes: create (schedule + prompt + name + delivery), pause/resume, run-now, delete — all via `hermes cron`. Job-builder form + per-row actions; `router.refresh()` re-reads after each write.
+- [x] **Cron builder** — `/cron` now writes: create, **edit** (inline form pre-filled from the job: schedule/prompt/name/delivery), pause/resume, run-now, delete — all via `hermes cron`. Per-row actions; `router.refresh()` re-reads after each write.
 - [ ] **Soul / Persona** — edit `SOUL.md`.
 - [ ] **Agent settings** — `config.yaml → agent.*` (reasoning_effort, max_turns, image_input_mode…).
 - [ ] **Memory** — view/edit `~/.hermes/memories`.

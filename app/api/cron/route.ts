@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 const ID = /^[A-Za-z0-9_.:-]+$/;
 const PROFILE = /^[A-Za-z0-9_-]+$/;
-const DELIVER = new Set(["origin", "local", "telegram", "discord", "signal"]);
+const DELIVER = new Set(["origin", "local", "all", "telegram", "discord", "signal"]);
 const LIFECYCLE = new Set(["pause", "resume", "remove", "run"]);
 
 function run(args: string[]): Promise<{ ok: boolean; detail: string }> {
@@ -69,6 +69,36 @@ export async function POST(req: Request) {
     if (profile) args.push("--profile", profile);
     args.push(schedule);
     if (prompt) args.push(prompt);
+
+    const r = await run(args);
+    return r.ok
+      ? Response.json({ ok: true, detail: r.detail })
+      : Response.json({ error: r.detail }, { status: 502 });
+  }
+
+  // Edit: hermes cron edit <job_id> [--schedule][--prompt][--name][--deliver][--profile]
+  if (action === "edit") {
+    const id = String(body.jobId ?? "");
+    if (!ID.test(id)) return Response.json({ error: "Geçersiz job id." }, { status: 400 });
+
+    const schedule = String(body.schedule ?? "").trim().slice(0, 100);
+    const prompt = String(body.prompt ?? "").trim().slice(0, 2000);
+    const name = String(body.name ?? "").trim().slice(0, 100);
+    const deliver = String(body.deliver ?? "").trim();
+    const profile = String(body.profile ?? "").trim();
+
+    if (deliver && !DELIVER.has(deliver))
+      return Response.json({ error: "Geçersiz teslimat hedefi." }, { status: 400 });
+    if (profile && !PROFILE.test(profile))
+      return Response.json({ error: "Geçersiz profil adı." }, { status: 400 });
+
+    const args = ["cron", "edit", id];
+    if (schedule) args.push("--schedule", schedule);
+    if (name) args.push("--name", name);
+    if (deliver) args.push("--deliver", deliver);
+    if (profile) args.push("--profile", profile);
+    // Prompt can be cleared deliberately, so always send it.
+    args.push("--prompt", prompt);
 
     const r = await run(args);
     return r.ok

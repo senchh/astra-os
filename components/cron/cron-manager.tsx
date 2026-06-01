@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Play, Pause, Trash2, Plus, Loader2, X } from "lucide-react";
+import { Play, Pause, Trash2, Plus, Loader2, X, Pencil } from "lucide-react";
 import { relTime } from "@/lib/utils";
 import type { CronJob } from "@/lib/hermes/types";
 
@@ -24,20 +24,21 @@ const STATE_META: Record<JobState, { label: string; color: string }> = {
 
 const SORT_ORDER: Record<JobState, number> = { error: 0, ok: 1, pending: 2, paused: 3 };
 
-const DELIVER_OPTIONS = ["origin", "local", "telegram", "discord", "signal"];
+const DELIVER_OPTIONS = ["origin", "local", "all", "telegram", "discord", "signal"];
 
 export function CronManager({ jobs }: { jobs: CronJob[] }) {
   const router = useRouter();
   const [pending, setPending] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Create-form fields.
+  // Shared create/edit form fields.
   const [schedule, setSchedule] = useState("");
   const [prompt, setPrompt] = useState("");
   const [name, setName] = useState("");
   const [deliver, setDeliver] = useState("origin");
-  const [creating, setCreating] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const sorted = [...jobs].sort((a, b) => SORT_ORDER[jobState(a)] - SORT_ORDER[jobState(b)]);
 
@@ -77,17 +78,38 @@ export function CronManager({ jobs }: { jobs: CronJob[] }) {
     await call({ action, jobId }, jobId);
   }
 
-  async function create() {
-    if (!schedule.trim() || creating) return;
-    setCreating(true);
-    const ok = await call({ action: "create", schedule, prompt, name, deliver }, "create");
-    setCreating(false);
-    if (ok) {
-      setSchedule("");
-      setPrompt("");
-      setName("");
-      setShowForm(false);
-    }
+  function openCreate() {
+    setEditingId(null);
+    setSchedule("");
+    setPrompt("");
+    setName("");
+    setDeliver("origin");
+    setShowForm(true);
+  }
+
+  function openEdit(j: CronJob) {
+    setEditingId(j.id);
+    setSchedule(j.schedule || "");
+    setPrompt(j.prompt || "");
+    setName(j.name || "");
+    setDeliver(j.deliver || "origin");
+    setShowForm(true);
+  }
+
+  function closeForm() {
+    setShowForm(false);
+    setEditingId(null);
+  }
+
+  async function submit() {
+    if (!schedule.trim() || saving) return;
+    setSaving(true);
+    const payload = editingId
+      ? { action: "edit", jobId: editingId, schedule, prompt, name, deliver }
+      : { action: "create", schedule, prompt, name, deliver };
+    const ok = await call(payload, editingId ?? "create");
+    setSaving(false);
+    if (ok) closeForm();
   }
 
   return (
@@ -95,7 +117,7 @@ export function CronManager({ jobs }: { jobs: CronJob[] }) {
       <div className="flex items-center justify-between">
         <div className="label">{jobs.length} iş</div>
         <button
-          onClick={() => setShowForm((s) => !s)}
+          onClick={() => (showForm ? closeForm() : openCreate())}
           className="inline-flex items-center gap-1.5 rounded-lg border border-edge px-3 py-1.5 text-sm text-fg transition-colors hover:border-cyan/40"
         >
           {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4 text-cyan" />}
@@ -111,6 +133,12 @@ export function CronManager({ jobs }: { jobs: CronJob[] }) {
 
       {showForm && (
         <div className="panel space-y-3 p-4">
+          <div className="flex items-center gap-2">
+            <span className="label">{editingId ? "işi düzenle" : "yeni iş"}</span>
+            {editingId && (
+              <span className="font-mono text-xs text-faint">{editingId}</span>
+            )}
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="space-y-1">
               <span className="label">zamanlama *</span>
@@ -157,12 +185,12 @@ export function CronManager({ jobs }: { jobs: CronJob[] }) {
               </select>
             </label>
             <button
-              onClick={create}
-              disabled={!schedule.trim() || creating}
+              onClick={submit}
+              disabled={!schedule.trim() || saving}
               className="ml-auto inline-flex items-center gap-2 rounded-lg bg-cyan px-4 py-2 text-sm font-medium text-bg transition-opacity disabled:opacity-40"
             >
-              {creating && <Loader2 className="h-4 w-4 animate-spin" />}
-              Oluştur
+              {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+              {editingId ? "Kaydet" : "Oluştur"}
             </button>
           </div>
         </div>
@@ -200,6 +228,13 @@ export function CronManager({ jobs }: { jobs: CronJob[] }) {
                     <Loader2 className="mx-1.5 h-4 w-4 animate-spin text-cyan" />
                   ) : (
                     <>
+                      <button
+                        onClick={() => openEdit(j)}
+                        title="Düzenle"
+                        className="grid h-7 w-7 place-items-center rounded-md text-faint hover:bg-panel-2 hover:text-cyan"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
                       <button
                         onClick={() => lifecycle("run", j.id)}
                         title="Şimdi çalıştır"

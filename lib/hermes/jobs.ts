@@ -13,7 +13,14 @@ export function readCronJobs(): CronJob[] {
       (j): CronJob => ({
         id: String(j.id ?? ""),
         name: j.name ?? "(isimsiz)",
-        scheduleDisplay: j.schedule_display ?? j.schedule ?? "—",
+        scheduleDisplay: j.schedule_display ?? j.schedule?.display ?? j.schedule ?? "—",
+        schedule:
+          j.schedule_display ??
+          j.schedule?.expr ??
+          (typeof j.schedule === "string" ? j.schedule : "") ??
+          "",
+        prompt: j.prompt ?? "",
+        deliver: j.deliver ?? "origin",
         model: j.model ?? "—",
         provider: j.provider ?? "—",
         enabled: Boolean(j.enabled),
