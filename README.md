@@ -7,7 +7,7 @@ your local [Hermes](https://github.com/) data and Obsidian vault directly from d
 renders them as a single "war room" — with **the Orrery** at its center: a live orbital
 map of every agent and system in your stack (Claude, Hermes, OpenClaw, Obsidian).
 
-> Status: **v0** — functional baseline. Six screens live, reading real local data.
+> Status: **v0** — functional baseline. Seven screens live, reading real local data.
 > Visual polish is iterative.
 
 ## Screens
@@ -15,6 +15,7 @@ map of every agent and system in your stack (Claude, Hermes, OpenClaw, Obsidian)
 | Route | What it shows |
 |-------|---------------|
 | `/` | **Mission Control** — the Orrery + agent health chips + live stat cards |
+| `/board` | **Board** — Hermes multi-agent Kanban (Triage → Running → Blocked → Done → Archived), cards with assignee profile, age, priority and **failure surfacing** (last error + consecutive-failure count) |
 | `/control` | **Control Room** — providers, credentials & gateway in one panel: per-key status (ok / exhausted / error), source, auth type, fingerprint, **live p50/p95 latency + cache-hit + heartbeat per provider**, plus active/default provider and channel state |
 | `/cron` | Scheduled jobs with per-job status (ok / error / paused), schedule, model, last & next run |
 | `/activity` | Sessions-per-day chart + model distribution, last 14 days |
@@ -64,9 +65,11 @@ cmdk (⌘K command palette) · gray-matter (vault markdown) · lucide-react.
 
 ## Roadmap
 
-- Dream "run this fix" actions
-- ROI / "time worth" view (cost & tokens are already in `state.db` — `estimated_cost_usd`, `input/output/reasoning_tokens`)
-- Cinematic UI pass (gradient stat cards, sparklines, space-themed hero art)
+Astra OS is evolving from a read-only dashboard into a **web-based, full read+write control
+panel** for the Hermes stack — keeping its observability identity. The full plan lives in
+[`ROADMAP.md`](ROADMAP.md). Next up: a Hermes API client (`127.0.0.1:8642` SSE) powering
+streaming chat with live token/cost, then the write panel (tools, schedules, persona, memory),
+and eventually remote-mode deployment.
 
 ---
 

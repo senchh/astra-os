@@ -1,11 +1,10 @@
-import { createRequire } from "node:module";
 import { KANBAN_DB } from "./paths";
 import type { KanbanBoard, KanbanColumn, KanbanTask } from "./types";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-const nodeRequire = createRequire(import.meta.url);
-
+// process.getBuiltinModule reaches the real builtin even from a bundled
+// (Turbopack) server module, where createRequire(import.meta.url) breaks.
 const CLOSED = new Set(["done", "archived", "cancelled", "closed"]);
 
 // Display order for known statuses; unknown ones appended after.
@@ -15,11 +14,20 @@ export function readKanban(): KanbanBoard {
   let rows: any[] = [];
   try {
     // Node's built-in synchronous SQLite (no native dep needed).
-    const { DatabaseSync } = nodeRequire("node:sqlite");
+    // @types/node here predates node:sqlite, so type the slice we use.
+    const { DatabaseSync } = process.getBuiltinModule("node:sqlite") as {
+      DatabaseSync: new (
+        path: string,
+        opts?: { readOnly?: boolean }
+      ) => {
+        prepare(sql: string): { all(): any[] };
+        close(): void;
+      };
+    };
     const db = new DatabaseSync(KANBAN_DB, { readOnly: true });
     rows = db
       .prepare(
-        "SELECT id, title, status, assignee, created_at, completed_at FROM tasks ORDER BY created_at DESC"
+        "SELECT id, title, status, assignee, created_at, completed_at, started_at, priority, last_failure_error, consecutive_failures FROM tasks ORDER BY created_at DESC"
       )
       .all();
     db.close();
@@ -34,6 +42,10 @@ export function readKanban(): KanbanBoard {
     assignee: r.assignee ?? null,
     createdAt: Number(r.created_at) || 0,
     completedAt: r.completed_at != null ? Number(r.completed_at) : null,
+    startedAt: r.started_at != null ? Number(r.started_at) : null,
+    priority: Number(r.priority) || 0,
+    lastFailureError: r.last_failure_error ?? null,
+    consecutiveFailures: Number(r.consecutive_failures) || 0,
   }));
 
   const byStatus = new Map<string, KanbanTask[]>();

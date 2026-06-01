@@ -57,6 +57,10 @@ export interface KanbanTask {
   assignee: string | null;
   createdAt: number;
   completedAt: number | null;
+  startedAt: number | null;
+  priority: number;
+  lastFailureError: string | null;
+  consecutiveFailures: number;
 }
 
 export interface KanbanColumn {
