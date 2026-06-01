@@ -84,6 +84,7 @@ Two halves, fused:
 ## Phase 6 — Cinematic UI pass (LAST, deliberate)
 
 - [ ] Gradient stat cards, sparklines, space-themed hero art, motion polish.
+- [ ] **Cron edit layout rework** — the current inline form-at-top is rough. Move to the reference's **master-detail** (job list left, selected job's full detail/edit panel right, with "last outputs"). Functional today; visual only.
 
 ---
 
