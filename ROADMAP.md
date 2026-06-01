@@ -51,8 +51,8 @@ Two halves, fused:
 
 ## Phase 2 — Write panel (read + write)
 
-**A) Config writes** (edit `~/.hermes` files directly — we already read them):
-- [ ] **Tools** — toggle the 14 toolsets via `config.yaml → agent.disabled_toolsets`.
+**A) Config writes** (Hermes-owned mutation via its CLI — never hand-edit the commented `config.yaml`):
+- [x] **Tools** — `/tools` toggles the 25 toolsets via `hermes tools enable/disable` (state lives outside `agent.disabled_toolsets`, so the CLI is the safe writer). Optimistic UI + revert-on-error. *First write feature — Astra is no longer read-only.*
 - [ ] **Cron builder** — create/edit/delete jobs (`cron/jobs.json`); upgrade `/cron` from read-only.
 - [ ] **Soul / Persona** — edit `SOUL.md`.
 - [ ] **Agent settings** — `config.yaml → agent.*` (reasoning_effort, max_turns, image_input_mode…).

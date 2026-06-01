@@ -149,6 +149,13 @@ export interface ControlRoom {
   updatedAt: string | null;
 }
 
+// ── Tools (toolsets, from `hermes tools list`) ──────────────────
+export interface Toolset {
+  id: string;
+  label: string; // emoji + human label, e.g. "🔍 Web Search & Scraping"
+  enabled: boolean;
+}
+
 // ── Live performance (parsed from agent.log API-call lines) ──────
 export interface ProviderPerf {
   provider: string;

@@ -7,8 +7,8 @@ your local [Hermes](https://github.com/) data and Obsidian vault directly from d
 renders them as a single "war room" — with **the Orrery** at its center: a live orbital
 map of every agent and system in your stack (Claude, Hermes, OpenClaw, Obsidian).
 
-> Status: **v0** — functional baseline. Seven screens live, reading real local data.
-> Visual polish is iterative.
+> Status: **v0+** — reading real local data, and now **writing** too (the Tools screen
+> toggles toolsets live). Evolving into a full control panel — see [`ROADMAP.md`](ROADMAP.md).
 
 ## Screens
 
@@ -17,6 +17,7 @@ map of every agent and system in your stack (Claude, Hermes, OpenClaw, Obsidian)
 | `/` | **Mission Control** — the Orrery + agent health chips + live stat cards |
 | `/board` | **Board** — Hermes multi-agent Kanban (Triage → Running → Blocked → Done → Archived), cards with assignee profile, age, priority and **failure surfacing** (last error + consecutive-failure count) |
 | `/control` | **Control Room** — providers, credentials & gateway in one panel: per-key status (ok / exhausted / error), source, auth type, fingerprint, **live p50/p95 latency + cache-hit + heartbeat per provider**, plus active/default provider and channel state |
+| `/tools` | **Tools** *(write)* — enable/disable Hermes' 25 toolsets (web, browser, image-gen, memory…) with live toggles; changes are applied via `hermes tools` |
 | `/cron` | Scheduled jobs with per-job status (ok / error / paused), schedule, model, last & next run |
 | `/activity` | Sessions-per-day chart + model distribution, last 14 days |
 | `/dream` | Nightly Dream reports (pattern analysis & improvements), with full report view |

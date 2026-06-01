@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Orbit, Clock, Activity, Moon, Target, MessageSquare, SlidersHorizontal, KanbanSquare } from "lucide-react";
+import { Orbit, Clock, Activity, Moon, Target, MessageSquare, SlidersHorizontal, KanbanSquare, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -10,6 +10,7 @@ const NAV = [
   { href: "/chat", label: "Hermes", icon: MessageSquare },
   { href: "/board", label: "Board", icon: KanbanSquare },
   { href: "/control", label: "Control Room", icon: SlidersHorizontal },
+  { href: "/tools", label: "Tools", icon: Wrench },
   { href: "/cron", label: "Cron", icon: Clock },
   { href: "/activity", label: "Activity", icon: Activity },
   { href: "/dream", label: "Dream", icon: Moon },
