@@ -10,6 +10,16 @@ export const SESSIONS_DIR = path.join(HERMES_DIR, "sessions");
 export const MEMORIES_DIR = path.join(HERMES_DIR, "memories");
 export const PROFILES_DIR = path.join(HERMES_DIR, "profiles");
 
+// Control Room — provider / credential / gateway config.
+export const CONFIG_FILE = path.join(HERMES_DIR, "config.yaml");
+export const AUTH_FILE = path.join(HERMES_DIR, "auth.json");
+export const GATEWAY_STATE_FILE = path.join(HERMES_DIR, "gateway_state.json");
+export const PROVIDER_MODELS_CACHE = path.join(HERMES_DIR, "provider_models_cache.json");
+
+// Live agent health — per-API-call latency lines are logged here.
+export const LOGS_DIR = path.join(HERMES_DIR, "logs");
+export const AGENT_LOG = path.join(LOGS_DIR, "agent.log");
+
 export const VAULT_DIR = path.join(home, "Documents", "HermesMemory");
 export const DREAMS_DIR = path.join(VAULT_DIR, "Daily Dream Reports");
 

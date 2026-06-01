@@ -7,7 +7,7 @@ your local [Hermes](https://github.com/) data and Obsidian vault directly from d
 renders them as a single "war room" — with **the Orrery** at its center: a live orbital
 map of every agent and system in your stack (Claude, Hermes, OpenClaw, Obsidian).
 
-> Status: **v0** — functional baseline. Five screens live, reading real local data.
+> Status: **v0** — functional baseline. Six screens live, reading real local data.
 > Visual polish is iterative.
 
 ## Screens
@@ -15,6 +15,7 @@ map of every agent and system in your stack (Claude, Hermes, OpenClaw, Obsidian)
 | Route | What it shows |
 |-------|---------------|
 | `/` | **Mission Control** — the Orrery + agent health chips + live stat cards |
+| `/control` | **Control Room** — providers, credentials & gateway in one panel: per-key status (ok / exhausted / error), source, auth type, fingerprint, **live p50/p95 latency + cache-hit + heartbeat per provider**, plus active/default provider and channel state |
 | `/cron` | Scheduled jobs with per-job status (ok / error / paused), schedule, model, last & next run |
 | `/activity` | Sessions-per-day chart + model distribution, last 14 days |
 | `/dream` | Nightly Dream reports (pattern analysis & improvements), with full report view |
@@ -30,6 +31,9 @@ It reads from:
 - `~/.hermes/cron/jobs.json` — cron jobs
 - `~/.hermes/kanban.db` — kanban tasks (via Node's built-in `node:sqlite`)
 - `~/.hermes/sessions/*.json` — session activity & model usage
+- `~/.hermes/auth.json` — provider credentials (read **safe fields only** — token values are never touched)
+- `~/.hermes/config.yaml`, `gateway_state.json`, `provider_models_cache.json` — Control Room config & status
+- `~/.hermes/logs/agent.log` — per-API-call latency / token / cache lines → live p50/p95 per provider
 - `~/Documents/HermesMemory/` — Obsidian vault: Dream reports, Goals
 
 Because of this, **deploying to a remote host (e.g. Vercel) will render empty states** —
@@ -60,10 +64,8 @@ cmdk (⌘K command palette) · gray-matter (vault markdown) · lucide-react.
 
 ## Roadmap
 
-- Control Room (provider / key / session in one panel)
-- Live agent health (heartbeat, p50 latency)
 - Dream "run this fix" actions
-- ROI / "time worth" view
+- ROI / "time worth" view (cost & tokens are already in `state.db` — `estimated_cost_usd`, `input/output/reasoning_tokens`)
 - Cinematic UI pass (gradient stat cards, sparklines, space-themed hero art)
 
 ---
