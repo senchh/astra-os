@@ -74,7 +74,7 @@ Two halves, fused:
 
 ## Phase 4 — Observability depth (our moat — keep widening)
 
-- [ ] **ROI / "time worth"** — `state.db` has real `estimated_cost_usd` + `input/output/reasoning_tokens`. Same change **fixes the Activity "token 0" issue** (move Activity reader to `state.db`).
+- [ ] **ROI / "time worth" + Runs/Outputs** — the reference Agentic OS shows outputs in a dedicated **Activity → "Runs / Outputs"** view: a run table (`RUN · MODEL · WORKSPACE · STARTED · DURATION · STATUS · TOOLS`) + per-workspace cost cards + "60 runs · 80 outputs — every session and the artefact it produced". We have all of it in `state.db.sessions` (id, model, source=workspace, started/ended→duration, end_reason→status, tool_call_count, tokens, `estimated_cost_usd`). Build: a **Runs table** on `/activity` from `state.db` (this also **fixes the "token 0" issue** — move the Activity reader off session JSON), plus an **Outputs/gallery** tab (generated images in `~/.hermes/images/`, kanban `tasks.result`/`workspace_path`).
 - [ ] Session full-text search (`state.db` has FTS5) — from hermes-desktop's Sessions screen.
 
 ## Phase 5 — Deploy
