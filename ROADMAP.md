@@ -45,7 +45,7 @@ Two halves, fused:
   - **API-first, CLI-fallback**: if `127.0.0.1:8642` is up → use it; else fall back to the working CLI path. Never breaks.
   - **`getApiUrl()`** abstraction (local | `HERMES_API_URL` remote) + key from `~/.hermes/.env` `API_SERVER_KEY` or `HERMES_API_KEY`.
 - [x] **Migrated `/chat`** — route now streams SSE (`chunk`/`tool`/`usage`/`done`) to the browser; client renders token-by-token, shows a **source badge** (Hermes API · stream / Hermes CLI) and a **token/cost footer**.
-- [ ] **Live-verify the API path** — needs the local API server up (`platforms.api_server` enabled in `config.yaml` + gateway restart). CLI fallback is verified; the API path is built but inert until `8642` runs.
+- [ ] **Live-verify the API path** — *deferred (decision B)*. Needs the local API server up (`platforms.api_server` in `config.yaml` + gateway restart, which touches the live gateway). The code is ready and activates automatically once `8642` runs — verify at a convenient moment. CLI fallback works today.
 
 *Note: this client is also the action channel for the whole write panel.*
 
