@@ -12,3 +12,7 @@ export const PROFILES_DIR = path.join(HERMES_DIR, "profiles");
 
 export const VAULT_DIR = path.join(home, "Documents", "HermesMemory");
 export const DREAMS_DIR = path.join(VAULT_DIR, "Daily Dream Reports");
+
+// Hermes CLI — used by the chat route to run one-shot agent queries.
+export const HERMES_BIN = path.join(home, ".local", "bin", "hermes");
+export const LOCAL_BIN = path.join(home, ".local", "bin");

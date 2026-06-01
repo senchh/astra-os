@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Orbit, Clock, Activity, Moon, Target } from "lucide-react";
+import { Orbit, Clock, Activity, Moon, Target, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "/", label: "Mission Control", icon: Orbit },
+  { href: "/chat", label: "Hermes", icon: MessageSquare },
   { href: "/cron", label: "Cron", icon: Clock },
   { href: "/activity", label: "Activity", icon: Activity },
   { href: "/dream", label: "Dream", icon: Moon },

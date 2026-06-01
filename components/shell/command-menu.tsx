@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
-import { Orbit, Clock, Activity, Moon, Target } from "lucide-react";
+import { Orbit, Clock, Activity, Moon, Target, MessageSquare } from "lucide-react";
 
 const ITEMS = [
   { href: "/", label: "Mission Control", icon: Orbit, hint: "genel bakış · orrery" },
+  { href: "/chat", label: "Hermes", icon: MessageSquare, hint: "canlı sohbet · sesli" },
   { href: "/cron", label: "Cron", icon: Clock, hint: "zamanlanmış görevler" },
   { href: "/activity", label: "Activity", icon: Activity, hint: "session & model analizi" },
   { href: "/dream", label: "Dream", icon: Moon, hint: "rüya raporları" },
