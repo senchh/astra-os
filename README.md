@@ -18,7 +18,7 @@ map of every agent and system in your stack (Claude, Hermes, OpenClaw, Obsidian)
 | `/board` | **Board** — Hermes multi-agent Kanban (Triage → Running → Blocked → Done → Archived), cards with assignee profile, age, priority and **failure surfacing** (last error + consecutive-failure count) |
 | `/control` | **Control Room** — providers, credentials & gateway in one panel: per-key status (ok / exhausted / error), source, auth type, fingerprint, **live p50/p95 latency + cache-hit + heartbeat per provider**, plus active/default provider and channel state |
 | `/tools` | **Tools** *(write)* — enable/disable Hermes' 25 toolsets (web, browser, image-gen, memory…) with live toggles; changes are applied via `hermes tools` |
-| `/cron` | Scheduled jobs with per-job status (ok / error / paused), schedule, model, last & next run |
+| `/cron` | **Cron** *(write)* — scheduled jobs with per-job status; **create / pause / resume / run-now / delete** jobs (applied via `hermes cron`), plus a job-builder form (schedule, prompt, name, delivery target) |
 | `/activity` | Sessions-per-day chart + model distribution, last 14 days |
 | `/dream` | Nightly Dream reports (pattern analysis & improvements), with full report view |
 | `/goals` | Goals pulled from your Obsidian vault (`Goals.md` checkboxes) |

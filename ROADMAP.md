@@ -53,12 +53,14 @@ Two halves, fused:
 
 **A) Config writes** (Hermes-owned mutation via its CLI — never hand-edit the commented `config.yaml`):
 - [x] **Tools** — `/tools` toggles the 25 toolsets via `hermes tools enable/disable` (state lives outside `agent.disabled_toolsets`, so the CLI is the safe writer). Optimistic UI + revert-on-error. *First write feature — Astra is no longer read-only.*
-- [ ] **Cron builder** — create/edit/delete jobs (`cron/jobs.json`); upgrade `/cron` from read-only.
+- [x] **Cron builder** — `/cron` now writes: create (schedule + prompt + name + delivery), pause/resume, run-now, delete — all via `hermes cron`. Job-builder form + per-row actions; `router.refresh()` re-reads after each write.
 - [ ] **Soul / Persona** — edit `SOUL.md`.
 - [ ] **Agent settings** — `config.yaml → agent.*` (reasoning_effort, max_turns, image_input_mode…).
 - [ ] **Memory** — view/edit `~/.hermes/memories`.
 - [ ] **Profiles / Agents** — list & switch `~/.hermes/profiles/`.
 - [ ] **Image gallery** — `~/.hermes/images/` (read).
+
+*Tools follow-ups (backlog): a short "what enabling a toolset does" hint on `/tools`; a platform selector (cli / telegram / discord — toolsets are per-platform); an **output gallery** for artifacts the tools produce (`~/.hermes/images/` etc.). Enabling a toolset grants the agent a capability — the effect shows up as tool-progress in `/chat` and artifacts on disk when the agent next runs (chat / cron / kanban / gateway), not as a new tab.*
 
 **B) Action triggers** (via the Phase-1 client — API/CLI):
 - [ ] Send a task / run a tool (web, browser screenshot, image-gen, TTS) → Hermes executes, we trigger + show results.
