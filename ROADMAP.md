@@ -38,15 +38,16 @@ Two halves, fused:
 - [x] `/dream` (nightly Dream reports)
 - [x] `/goals` (vault Goals.md)
 
-## Phase 1 — Foundation: Hermes integration client 🔜 (enables everything below)
+## Phase 1 — Foundation: Hermes integration client ✅ (code) · ⏳ (live API verify)
 
-- [ ] **`lib/hermes/api.ts`** — single Hermes client:
-  - **API-first, CLI-fallback** (mirrors hermes-desktop): if `127.0.0.1:8642` is up → use it; else fall back to today's working CLI path. Never breaks.
-  - **`getApiUrl()`** abstraction (local | remote) from day one → remote deploy becomes a later config flip.
-  - Port MIT **`sse-parser.ts`** (`ParsedUsage{promptTokens,completionTokens,cost,rateLimit…}`, `onChunk/onUsage/onToolProgress`).
-- [ ] **Migrate `/chat`** to the client → real token-by-token streaming + **live token/cost footer** + tool-progress.
+- [x] **`lib/hermes/sse.ts`** — SSE parser ported from hermes-desktop (MIT): `ParsedUsage`, tool-progress, usage.
+- [x] **`lib/hermes/api.ts`** — single Hermes client:
+  - **API-first, CLI-fallback**: if `127.0.0.1:8642` is up → use it; else fall back to the working CLI path. Never breaks.
+  - **`getApiUrl()`** abstraction (local | `HERMES_API_URL` remote) + key from `~/.hermes/.env` `API_SERVER_KEY` or `HERMES_API_KEY`.
+- [x] **Migrated `/chat`** — route now streams SSE (`chunk`/`tool`/`usage`/`done`) to the browser; client renders token-by-token, shows a **source badge** (Hermes API · stream / Hermes CLI) and a **token/cost footer**.
+- [ ] **Live-verify the API path** — needs the local API server up (`platforms.api_server` enabled in `config.yaml` + gateway restart). CLI fallback is verified; the API path is built but inert until `8642` runs.
 
-*Rationale: this client is also the action channel for the whole write panel. Build it first.*
+*Note: this client is also the action channel for the whole write panel.*
 
 ## Phase 2 — Write panel (read + write)
 

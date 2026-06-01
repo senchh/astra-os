@@ -1,6 +1,7 @@
 import { execFile } from "node:child_process";
 import os from "node:os";
 import { HERMES_BIN, LOCAL_BIN } from "@/lib/hermes/paths";
+import { isApiReady, streamChat, type ChatMessage } from "@/lib/hermes/api";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,10 +12,8 @@ interface Msg {
 }
 
 /**
- * Conversation continuity is done by threading the transcript into a single
- * prompt rather than juggling Hermes session IDs — deterministic, and every
- * call still gets Hermes' own memory/persona injection. We cap the history to
- * keep the prompt (and cost) bounded.
+ * CLI fallback only: thread the transcript into one prompt rather than juggling
+ * session IDs. The API path sends a real messages array instead.
  */
 function buildPrompt(messages: Msg[]): string {
   const recent = messages.slice(-12);
@@ -33,7 +32,7 @@ function buildPrompt(messages: Msg[]): string {
   ].join("\n");
 }
 
-function runHermes(prompt: string): Promise<{ ok: boolean; text: string }> {
+function runHermesCli(prompt: string): Promise<{ ok: boolean; text: string }> {
   return new Promise((resolve) => {
     execFile(
       HERMES_BIN,
@@ -62,8 +61,13 @@ function runHermes(prompt: string): Promise<{ ok: boolean; text: string }> {
   });
 }
 
+const encoder = new TextEncoder();
+function frame(event: string, data: unknown): Uint8Array {
+  return encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+}
+
 export async function POST(req: Request) {
-  let body: { messages?: Msg[] };
+  let body: { messages?: Msg[]; sessionId?: string };
   try {
     body = await req.json();
   } catch {
@@ -76,7 +80,49 @@ export async function POST(req: Request) {
     return Response.json({ error: "Boş mesaj." }, { status: 400 });
   }
 
-  const result = await runHermes(buildPrompt(messages));
-  if (!result.ok) return Response.json({ error: result.text }, { status: 502 });
-  return Response.json({ reply: result.text });
+  const apiUp = await isApiReady();
+
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const send = (event: string, data: unknown) =>
+        controller.enqueue(frame(event, data));
+      send("meta", { source: apiUp ? "api" : "cli" });
+
+      try {
+        if (apiUp) {
+          const apiMessages: ChatMessage[] = messages.map((m) => ({
+            role: m.role,
+            content: m.content,
+          }));
+          await streamChat(
+            { messages: apiMessages, sessionId: body.sessionId },
+            {
+              onChunk: (t) => send("chunk", t),
+              onToolProgress: (t) => send("tool", t),
+              onUsage: (u) => send("usage", u),
+              onError: (m) => send("error", m),
+              onDone: () => {},
+            }
+          );
+        } else {
+          const result = await runHermesCli(buildPrompt(messages));
+          if (!result.ok) send("error", result.text);
+          else send("chunk", result.text);
+        }
+      } catch (e) {
+        send("error", (e as Error).message || "Akış sırasında hata.");
+      } finally {
+        send("done", {});
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+    },
+  });
 }

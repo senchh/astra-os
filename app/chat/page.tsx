@@ -11,6 +11,13 @@ interface Msg {
   content: string;
 }
 
+interface Usage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  cost?: number;
+}
+
 export default function ChatPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -18,10 +25,16 @@ export default function ChatPage() {
   const [error, setError] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
   const [speechOk, setSpeechOk] = useState(false);
+  const [tool, setTool] = useState<string | null>(null);
+  const [usage, setUsage] = useState<Usage | null>(null);
+  const [source, setSource] = useState<"api" | "cli" | null>(null);
 
   const recognitionRef = useRef<any>(null);
   const baseInputRef = useRef("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const convIdRef = useRef<string>(
+    `astra-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+  );
 
   // Set up Web Speech API (Chrome/Edge). Dictates straight into the input.
   useEffect(() => {
@@ -92,23 +105,87 @@ export default function ChatPage() {
     setInput("");
     baseInputRef.current = "";
     setError(null);
+    setTool(null);
+    setUsage(null);
     setLoading(true);
+
+    // Append an empty assistant bubble we stream tokens into.
+    let assistantStarted = false;
+    const startAssistant = () => {
+      if (assistantStarted) return;
+      assistantStarted = true;
+      setMessages((m) => [...m, { role: "assistant", content: "" }]);
+    };
+    const appendChunk = (t: string) => {
+      startAssistant();
+      setMessages((m) => {
+        const copy = [...m];
+        copy[copy.length - 1] = {
+          role: "assistant",
+          content: copy[copy.length - 1].content + t,
+        };
+        return copy;
+      });
+    };
 
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next }),
+        body: JSON.stringify({ messages: next, sessionId: convIdRef.current }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Bir hata oluştu.");
-      } else {
-        setMessages((m) => [...m, { role: "assistant", content: data.reply }]);
+
+      if (!res.ok || !res.body) {
+        let msg = "Bir hata oluştu.";
+        try {
+          msg = (await res.json()).error ?? msg;
+        } catch {
+          /* non-JSON */
+        }
+        setError(msg);
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      const handle = (event: string, data: string) => {
+        let payload: unknown = data;
+        try {
+          payload = JSON.parse(data);
+        } catch {
+          /* plain string */
+        }
+        if (event === "meta") setSource((payload as any)?.source ?? null);
+        else if (event === "chunk") {
+          setTool(null);
+          appendChunk(typeof payload === "string" ? payload : String(payload));
+        } else if (event === "tool") setTool(String(payload));
+        else if (event === "usage") setUsage(payload as Usage);
+        else if (event === "error") setError(String(payload));
+      };
+
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const blocks = buffer.split("\n\n");
+        buffer = blocks.pop() ?? "";
+        for (const block of blocks) {
+          let ev = "message";
+          let dataLine = "";
+          for (const line of block.split("\n")) {
+            if (line.startsWith("event:")) ev = line.slice(6).trim();
+            else if (line.startsWith("data:")) dataLine = line.slice(5).replace(/^\s/, "");
+          }
+          if (dataLine) handle(ev, dataLine);
+        }
       }
     } catch {
       setError("Sunucuya ulaşılamadı.");
     } finally {
+      setTool(null);
       setLoading(false);
     }
   }
@@ -167,11 +244,11 @@ export default function ChatPage() {
           </div>
         ))}
 
-        {loading && (
+        {loading && (tool || messages.at(-1)?.role !== "assistant") && (
           <div className="flex justify-start">
             <div className="panel flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm text-muted">
               <Loader2 className="h-3.5 w-3.5 animate-spin text-cyan" />
-              Hermes düşünüyor…
+              {tool ?? "Hermes düşünüyor…"}
             </div>
           </div>
         )}
@@ -227,9 +304,22 @@ export default function ChatPage() {
             <Send className="h-4 w-4" />
           </button>
         </div>
-        <p className="mt-1.5 px-1 text-[0.625rem] text-faint">
-          Enter ile gönder · Shift+Enter yeni satır · yanıtlar yerel Hermes CLI&apos;dan gelir
-        </p>
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 px-1 text-[0.625rem] text-faint">
+          <span>Enter ile gönder · Shift+Enter yeni satır</span>
+          {source && (
+            <span className="rounded border border-edge px-1.5 py-0.5 uppercase tracking-wide">
+              {source === "api" ? "Hermes API · stream" : "Hermes CLI"}
+            </span>
+          )}
+          {usage && (
+            <span className="ml-auto font-mono text-muted">
+              ↑{usage.promptTokens} ↓{usage.completionTokens}
+              {typeof usage.cost === "number" && usage.cost > 0
+                ? ` · $${usage.cost.toFixed(4)}`
+                : ""}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
