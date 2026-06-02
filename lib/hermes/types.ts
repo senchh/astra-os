@@ -125,6 +125,7 @@ export interface ProviderInfo {
   status: CredStatus; // rolled up across credentials
   credentials: Credential[];
   modelCount: number;
+  models: string[]; // cached model ids for this provider (provider_models_cache.json)
   isActive: boolean; // == auth.active_provider
   isDefault: boolean; // == config model.provider
 }

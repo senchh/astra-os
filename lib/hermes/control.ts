@@ -109,13 +109,15 @@ export function readControlRoom(): ControlRoom {
       const credentials = (creds ?? [])
         .map(toCredential)
         .sort((a, b) => a.priority - b.priority);
+      const models: string[] = Array.isArray(modelsCache?.[id]?.models)
+        ? modelsCache[id].models.filter((m: unknown): m is string => typeof m === "string")
+        : [];
       return {
         id,
         credentials,
         status: rollUp(credentials),
-        modelCount: Array.isArray(modelsCache?.[id]?.models)
-          ? modelsCache[id].models.length
-          : 0,
+        modelCount: models.length,
+        models,
         isActive: id === activeProvider,
         isDefault: id === defaultProvider,
       };

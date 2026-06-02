@@ -1,6 +1,7 @@
 import { readControlRoom } from "@/lib/hermes/control";
 import { readPerfMetrics } from "@/lib/hermes/metrics";
 import { StatCard } from "@/components/overview/stat-card";
+import { ProviderModelSelect } from "@/components/control/provider-model-select";
 import { relTime } from "@/lib/utils";
 import type {
   CredStatus,
@@ -110,7 +111,17 @@ function PerfStrip({ perf }: { perf: ProviderPerf }) {
   );
 }
 
-function ProviderCard({ p, perf }: { p: ProviderInfo; perf?: ProviderPerf }) {
+function ProviderCard({
+  p,
+  perf,
+  currentModel,
+  currentProvider,
+}: {
+  p: ProviderInfo;
+  perf?: ProviderPerf;
+  currentModel: string;
+  currentProvider: string;
+}) {
   return (
     <div className="panel overflow-hidden">
       <div className="flex items-center gap-2.5 border-b border-edge px-4 py-3">
@@ -140,6 +151,14 @@ function ProviderCard({ p, perf }: { p: ProviderInfo; perf?: ProviderPerf }) {
           <CredRow key={c.id} c={c} />
         ))}
       </div>
+      <div className="border-t border-edge">
+        <ProviderModelSelect
+          provider={p.id}
+          models={p.models}
+          currentModel={currentModel}
+          isCurrentProvider={p.id === currentProvider}
+        />
+      </div>
     </div>
   );
 }
@@ -150,6 +169,18 @@ export default function Page() {
   const healthy = cr.providers.filter((p) => p.status === "ok").length;
   const gatewayUp = cr.gateway.state === "running";
   const hasPerf = perf.totalCalls > 0;
+
+  // Health of the provider serving the default model — "is the AI I'm using working?".
+  // This replaces the old `active_provider` stat, which is a separate auth-pool
+  // pointer that often diverges from the model's provider and misleads.
+  const defaultProviderInfo = cr.providers.find((p) => p.isDefault);
+  const defaultStatus: CredStatus = defaultProviderInfo?.status ?? "unknown";
+  const HEALTH_WORD: Record<CredStatus, string> = {
+    ok: "sağlıklı",
+    exhausted: "tükendi",
+    error: "hata",
+    unknown: "—",
+  };
 
   return (
     <div className="mx-auto max-w-6xl space-y-5 p-6">
@@ -162,9 +193,10 @@ export default function Page() {
 
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
-          label="aktif sağlayıcı"
-          value={cr.activeProvider ?? "—"}
-          accent="var(--color-cyan)"
+          label="varsayılan sağlayıcı"
+          value={HEALTH_WORD[defaultStatus]}
+          sub={cr.defaultProvider || undefined}
+          accent={STATUS_META[defaultStatus].color}
         />
         <StatCard
           label="varsayılan model"
@@ -195,7 +227,13 @@ export default function Page() {
         ) : (
           <div className="grid gap-4 lg:grid-cols-2">
             {cr.providers.map((p) => (
-              <ProviderCard key={p.id} p={p} perf={perf.byProvider[p.id]} />
+              <ProviderCard
+                key={p.id}
+                p={p}
+                perf={perf.byProvider[p.id]}
+                currentModel={cr.defaultModel}
+                currentProvider={cr.defaultProvider}
+              />
             ))}
           </div>
         )}
