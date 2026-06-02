@@ -3,18 +3,21 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
-import { Orbit, Clock, Activity, Moon, Target, MessageSquare, SlidersHorizontal, KanbanSquare, Wrench } from "lucide-react";
+import { Orbit, Clock, Activity, Moon, Target, MessageSquare, SlidersHorizontal, KanbanSquare, Wrench, Brain, Settings, Users } from "lucide-react";
 
 const ITEMS = [
   { href: "/", label: "Mission Control", icon: Orbit, hint: "genel bakış · orrery" },
   { href: "/chat", label: "Hermes", icon: MessageSquare, hint: "canlı sohbet · sesli" },
   { href: "/board", label: "Board", icon: KanbanSquare, hint: "kanban · görev panosu" },
   { href: "/control", label: "Control Room", icon: SlidersHorizontal, hint: "sağlayıcı · anahtar · gateway" },
+  { href: "/memory", label: "Memory", icon: Brain, hint: "notlar · profil · persona (soul)" },
   { href: "/tools", label: "Tools", icon: Wrench, hint: "araç setleri · aç/kapat" },
   { href: "/cron", label: "Cron", icon: Clock, hint: "zamanlanmış görevler" },
   { href: "/activity", label: "Activity", icon: Activity, hint: "session & model analizi" },
   { href: "/dream", label: "Dream", icon: Moon, hint: "rüya raporları" },
   { href: "/goals", label: "Goals", icon: Target, hint: "hedefler" },
+  { href: "/profiles", label: "Profiles", icon: Users, hint: "profiller · aktif değiştir" },
+  { href: "/settings", label: "Settings", icon: Settings, hint: "ajan davranışı · persona · görünüm" },
 ];
 
 export function CommandMenu() {
