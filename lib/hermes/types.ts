@@ -53,6 +53,28 @@ export interface ActivitySummary {
   lastActivity: string | null;
 }
 
+// One agent run, from state.db `sessions` (the canonical token/cost ledger).
+export interface Run {
+  id: string;
+  source: string; // cli | cron | telegram | webui …
+  model: string;
+  startedAt: number; // epoch seconds
+  durationSec: number | null; // null while running
+  status: string; // end_reason, or "running" when not ended
+  toolCalls: number;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number; // input + output + reasoning
+  costLabel: string; // "abonelik" (included) | "—" (unknown/unmetered) | "$x" if ever metered
+  title: string | null;
+}
+
+export interface SourceUsage {
+  source: string;
+  runs: number;
+  tokens: number;
+}
+
 export interface KanbanTask {
   id: string;
   title: string;

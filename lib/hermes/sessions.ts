@@ -1,36 +1,105 @@
-import fs from "node:fs";
-import path from "node:path";
-import { SESSIONS_DIR } from "./paths";
-import type { ActivitySummary, DayBucket, ModelUsage, SessionMeta } from "./types";
+import { STATE_DB } from "./paths";
+import type {
+  ActivitySummary,
+  DayBucket,
+  ModelUsage,
+  Run,
+  SessionMeta,
+  SourceUsage,
+} from "./types";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export function readSessions(): SessionMeta[] {
-  let files: string[] = [];
+// state.db is the canonical token/cost ledger. The old reader parsed
+// ~/.hermes/sessions/*.json, whose `total_tokens` was always 0 (the "token 0"
+// bug) — the real per-session tokens live here. process.getBuiltinModule reaches
+// the real builtin even from a bundled (Turbopack) server module.
+function queryState(sql: string): any[] {
   try {
-    files = fs.readdirSync(SESSIONS_DIR).filter((f) => f.endsWith(".json"));
+    const { DatabaseSync } = process.getBuiltinModule("node:sqlite") as {
+      DatabaseSync: new (
+        path: string,
+        opts?: { readOnly?: boolean }
+      ) => { prepare(sql: string): { all(): any[] }; close(): void };
+    };
+    const db = new DatabaseSync(STATE_DB, { readOnly: true });
+    const rows = db.prepare(sql).all();
+    db.close();
+    return rows;
   } catch {
     return [];
   }
-  const out: SessionMeta[] = [];
-  for (const f of files) {
-    try {
-      const d: any = JSON.parse(fs.readFileSync(path.join(SESSIONS_DIR, f), "utf8"));
-      out.push({
-        sessionId: d.session_id ?? f.replace(/\.json$/, ""),
-        model: d.model ?? "unknown",
-        provider: d.provider ?? "unknown",
-        platform: d.platform ?? "unknown",
-        start: d.session_start ?? d.last_updated ?? "",
-        lastUpdated: d.last_updated ?? d.session_start ?? "",
-        messageCount: Number(d.message_count ?? (Array.isArray(d.messages) ? d.messages.length : 0)) || 0,
-        totalTokens: Number(d.total_tokens ?? 0) || 0,
-      });
-    } catch {
-      /* skip malformed */
-    }
-  }
-  return out;
+}
+
+const toIso = (sec: any): string => {
+  const n = Number(sec);
+  return Number.isFinite(n) && n > 0 ? new Date(n * 1000).toISOString() : "";
+};
+
+function costLabel(status: any, cost: any): string {
+  const c = Number(cost);
+  if (Number.isFinite(c) && c > 0) return `$${c.toFixed(2)}`;
+  if (status === "included") return "abonelik";
+  return "—"; // unknown / unmetered (OAuth subscriptions report no per-token cost)
+}
+
+export function readSessions(): SessionMeta[] {
+  const rows = queryState(
+    "SELECT id, source, model, billing_provider, started_at, ended_at, message_count, input_tokens, output_tokens, reasoning_tokens FROM sessions"
+  );
+  return rows.map((r) => ({
+    sessionId: String(r.id),
+    model: r.model ?? "unknown",
+    provider: r.billing_provider ?? "unknown",
+    platform: r.source ?? "unknown",
+    start: toIso(r.started_at),
+    lastUpdated: toIso(r.ended_at ?? r.started_at),
+    messageCount: Number(r.message_count) || 0,
+    totalTokens:
+      (Number(r.input_tokens) || 0) +
+      (Number(r.output_tokens) || 0) +
+      (Number(r.reasoning_tokens) || 0),
+  }));
+}
+
+// Recent runs for the Activity → Runs table (rich, per-run rows).
+export function readRuns(limit = 40): Run[] {
+  const rows = queryState(
+    `SELECT id, source, model, started_at, ended_at, end_reason, tool_call_count, input_tokens, output_tokens, reasoning_tokens, estimated_cost_usd, cost_status, title FROM sessions ORDER BY started_at DESC LIMIT ${Number(limit) || 40}`
+  );
+  return rows.map((r) => {
+    const started = Number(r.started_at) || 0;
+    const ended = r.ended_at != null ? Number(r.ended_at) : null;
+    return {
+      id: String(r.id),
+      source: r.source ?? "—",
+      model: r.model ?? "unknown",
+      startedAt: started,
+      durationSec: ended != null && ended >= started ? Math.round(ended - started) : null,
+      status: ended == null ? "running" : (r.end_reason ?? "—"),
+      toolCalls: Number(r.tool_call_count) || 0,
+      inputTokens: Number(r.input_tokens) || 0,
+      outputTokens: Number(r.output_tokens) || 0,
+      totalTokens:
+        (Number(r.input_tokens) || 0) +
+        (Number(r.output_tokens) || 0) +
+        (Number(r.reasoning_tokens) || 0),
+      costLabel: costLabel(r.cost_status, r.estimated_cost_usd),
+      title: r.title ?? null,
+    };
+  });
+}
+
+// Per-source token totals (cli / cron / telegram / webui).
+export function readSourceUsage(): SourceUsage[] {
+  const rows = queryState(
+    "SELECT source, COUNT(*) runs, SUM(input_tokens + output_tokens + reasoning_tokens) tokens FROM sessions GROUP BY source ORDER BY tokens DESC"
+  );
+  return rows.map((r) => ({
+    source: r.source ?? "—",
+    runs: Number(r.runs) || 0,
+    tokens: Number(r.tokens) || 0,
+  }));
 }
 
 function dayKey(iso: string): string | null {
