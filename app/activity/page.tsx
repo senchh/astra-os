@@ -1,7 +1,10 @@
 import { summarizeActivity, readRuns, readSourceUsage } from "@/lib/hermes/sessions";
+import { readImages } from "@/lib/hermes/outputs";
 import { StatCard } from "@/components/overview/stat-card";
 import { compactNum, relTime, cn } from "@/lib/utils";
 import type { Run } from "@/lib/hermes/types";
+
+const fmtKb = (bytes: number) => `${Math.round(bytes / 1024)} KB`;
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -66,6 +69,7 @@ export default function Page() {
   const a = summarizeActivity(14);
   const runs = readRuns(40);
   const sources = readSourceUsage();
+  const images = readImages();
   const maxSessions = Math.max(1, ...a.days.map((d) => d.sessions));
   const maxModelSessions = Math.max(1, ...a.models.map((m) => m.sessions));
   const sourceMax = Math.max(1, ...sources.map((s) => s.tokens));
@@ -137,6 +141,51 @@ export default function Page() {
         <div className="border-t border-edge px-5 py-2 text-[0.625rem] text-faint">
           Maliyet: OAuth/abonelik sağlayıcılarda token başına ücret raporlanmaz → &quot;abonelik&quot; / &quot;—&quot;.
         </div>
+      </section>
+
+      {/* Outputs — generated images */}
+      <section className="panel overflow-hidden">
+        <div className="flex items-center justify-between border-b border-edge px-5 py-3">
+          <span className="label">üretilen görseller</span>
+          <span className="text-xs text-faint">{images.length}</span>
+        </div>
+        {images.length === 0 ? (
+          <div className="p-8 text-center text-sm text-muted">
+            Henüz üretilmiş görsel yok.{" "}
+            <span className="text-faint">
+              (ajan image_gen/vision çalıştırınca <code className="font-mono">~/.hermes/images</code>&apos;e düşer)
+            </span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-3 lg:grid-cols-4">
+            {images.map((img) => (
+              <a
+                key={img.name}
+                href={`/api/outputs/image?name=${encodeURIComponent(img.name)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="group overflow-hidden rounded-xl border border-edge bg-bg-2 transition-colors hover:border-cyan/50"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/api/outputs/image?name=${encodeURIComponent(img.name)}`}
+                  alt={img.name}
+                  className="aspect-square w-full object-cover"
+                  loading="lazy"
+                />
+                <div className="px-3 py-2">
+                  <div className="truncate font-mono text-[0.625rem] text-muted" title={img.name}>
+                    {img.name}
+                  </div>
+                  <div className="mt-0.5 flex items-center justify-between text-[0.625rem] text-faint">
+                    <span>{relTime(img.modified)}</span>
+                    <span className="tabular-nums">{fmtKb(img.bytes)}</span>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Runs per day */}
