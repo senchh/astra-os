@@ -123,6 +123,35 @@ export interface AgentHealth {
   color: string;
 }
 
+// ── Skills (from ~/.hermes/skills/<…>/SKILL.md + .usage.json) ────
+export interface Skill {
+  id: string; // skill name (frontmatter `name`, else its dir)
+  description: string;
+  category: string;
+  version: string | null;
+  tags: string[];
+  source: "builtin" | "local"; // membership in .bundled_manifest
+  enabled: boolean; // not listed in config.yaml skills.disabled
+  bytes: number; // SKILL.md size — a token-cost proxy when the skill loads
+  useCount: number; // .usage.json — times the agent invoked it
+  viewCount: number;
+  lastUsedAt: string | null;
+  createdBy: string | null; // agent | user | null
+}
+
+export interface SkillCategory {
+  name: string;
+  skills: Skill[];
+}
+
+export interface SkillsCatalog {
+  skills: Skill[];
+  categories: SkillCategory[];
+  total: number;
+  enabled: number;
+  used: number; // skills with useCount > 0
+}
+
 // ── Control Room ────────────────────────────────────────────────
 export type CredStatus = "ok" | "exhausted" | "error" | "unknown";
 

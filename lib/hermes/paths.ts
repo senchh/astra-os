@@ -11,6 +11,7 @@ export const SESSIONS_DIR = path.join(HERMES_DIR, "sessions");
 export const MEMORIES_DIR = path.join(HERMES_DIR, "memories");
 export const PROFILES_DIR = path.join(HERMES_DIR, "profiles");
 export const IMAGES_DIR = path.join(HERMES_DIR, "images");
+export const SKILLS_DIR = path.join(HERMES_DIR, "skills");
 
 // Control Room — provider / credential / gateway config.
 export const CONFIG_FILE = path.join(HERMES_DIR, "config.yaml");

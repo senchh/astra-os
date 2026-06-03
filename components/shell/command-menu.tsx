@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
-import { Orbit, Clock, Activity, Moon, Target, MessageSquare, SlidersHorizontal, KanbanSquare, Wrench, Brain, Settings, Users } from "lucide-react";
+import { Orbit, Clock, Activity, Moon, Target, MessageSquare, SlidersHorizontal, KanbanSquare, Wrench, Brain, Settings, Users, Blocks } from "lucide-react";
 
 const ITEMS = [
   { href: "/", label: "Mission Control", icon: Orbit, hint: "genel bakış · orrery" },
@@ -12,6 +12,7 @@ const ITEMS = [
   { href: "/control", label: "Control Room", icon: SlidersHorizontal, hint: "sağlayıcı · anahtar · gateway" },
   { href: "/memory", label: "Memory", icon: Brain, hint: "notlar · profil · persona (soul)" },
   { href: "/tools", label: "Tools", icon: Wrench, hint: "araç setleri · aç/kapat" },
+  { href: "/skills", label: "Skills", icon: Blocks, hint: "yetenek kataloğu · kullanım" },
   { href: "/cron", label: "Cron", icon: Clock, hint: "zamanlanmış görevler" },
   { href: "/activity", label: "Activity", icon: Activity, hint: "session & model analizi" },
   { href: "/dream", label: "Dream", icon: Moon, hint: "rüya raporları" },
