@@ -255,6 +255,15 @@ export interface ControlRoom {
   updatedAt: string | null;
 }
 
+// ── Send (action trigger: push a message to a platform) ─────────
+export interface SendTarget {
+  platform: string; // telegram | discord | slack …
+  id: string; // chat_id, or chat_id:thread_id for a group topic
+  name: string; // human label, e.g. "Senchh" or "Hermes Control Center / topic 1"
+  type: string; // dm | group | channel …
+  target: string; // the `--to` value, e.g. "telegram:-1004294152788:3"
+}
+
 // ── Tools (toolsets, from `hermes tools list`) ──────────────────
 export interface Toolset {
   id: string;

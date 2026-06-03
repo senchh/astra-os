@@ -63,9 +63,10 @@ Two halves, fused:
 
 *Tools follow-ups (backlog): a short "what enabling a toolset does" hint on `/tools`; a platform selector (cli / telegram / discord — toolsets are per-platform); an **output gallery** for artifacts the tools produce (`~/.hermes/images/` etc.). Enabling a toolset grants the agent a capability — the effect shows up as tool-progress in `/chat` and artifacts on disk when the agent next runs (chat / cron / kanban / gateway), not as a new tab.*
 
-**B) Action triggers** (via the Phase-1 client — API/CLI):
-- [ ] Send a task / run a tool (web, browser screenshot, image-gen, TTS) → Hermes executes, we trigger + show results.
-- [ ] Gateway start / stop / restart.
+**B) Action triggers** (via the Phase-1 client — API/CLI). *The first action surface, distinct from the config-writes: these fire real outbound actions, not config mutations.*
+- [x] **Send a message** — a "mesaj gönder" composer on `/control` (next to gateway & channels) pushes a message to any configured platform via `hermes send`. This is the **safe** first action: `send` reuses the gateway's platform credentials with **no LLM / agent loop**, and bot-token platforms (Telegram/Discord/Slack/Signal) don't even need a running gateway. Reader `lib/hermes/send.ts` (`send --list --json` → targets); API `app/api/send/route.ts` validates the target against the live list (only configured channels are sendable — no arbitrary `--to` injection), caps length, and uses `--` so a message starting with `-` stays a positional (array args = no shell). Client island `components/control/send-composer.tsx` (target select + textarea + ⌘/Ctrl+Enter, success/error inline). Verified end-to-end: invalid target / empty message → 400 (no send); live send to the Telegram DM → `{ok:true, message_id, mirrored}` (delivered). *Backlog: subject line; `send --file` for reports; a send-history.*
+- [ ] **Run a task / tool** (web, browser screenshot, image-gen, TTS) → Hermes executes, we trigger + show results. *Costs tokens / runs the agent — fire-and-forget like `/chat` but action-shaped.*
+- [ ] **Gateway start / stop / restart.** *Deferred for a deliberate approval moment — stopping the live gateway interrupts Telegram/cron delivery (same caution as the Phase-1 API live-verify); `hermes gateway {start,stop,restart,status}` is the writer.*
 
 ## Phase 3 — Operations parity (from reference Agentic OS)
 

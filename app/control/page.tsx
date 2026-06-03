@@ -2,6 +2,8 @@ import { readControlRoom } from "@/lib/hermes/control";
 import { readPerfMetrics } from "@/lib/hermes/metrics";
 import { StatCard } from "@/components/overview/stat-card";
 import { ProviderModelSelect } from "@/components/control/provider-model-select";
+import { SendComposer } from "@/components/control/send-composer";
+import { readSendTargets } from "@/lib/hermes/send";
 import { relTime } from "@/lib/utils";
 import type {
   CredStatus,
@@ -166,6 +168,7 @@ function ProviderCard({
 export default function Page() {
   const cr = readControlRoom();
   const perf = readPerfMetrics();
+  const sendTargets = readSendTargets();
   const healthy = cr.providers.filter((p) => p.status === "ok").length;
   const gatewayUp = cr.gateway.state === "running";
   const hasPerf = perf.totalCalls > 0;
@@ -298,6 +301,10 @@ export default function Page() {
             </div>
           )}
         </div>
+      </section>
+
+      <section>
+        <SendComposer targets={sendTargets} />
       </section>
     </div>
   );
