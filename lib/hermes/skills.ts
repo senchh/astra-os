@@ -139,3 +139,70 @@ export function readSkills(): SkillsCatalog {
     used: skills.filter((s) => s.useCount > 0).length,
   };
 }
+
+// Skill names are safe unquoted YAML scalars (lowercase, digits, _ . -).
+const SKILL_ID = /^[a-z0-9][a-z0-9_.-]*$/;
+
+export function isSkillId(s: string): boolean {
+  return SKILL_ID.test(s);
+}
+
+/**
+ * Surgically rewrite ONLY the `skills.disabled` value in config.yaml,
+ * preserving every comment and the rest of the file byte-for-byte.
+ *
+ * We deliberately avoid both Hermes paths here: `hermes config set
+ * skills.disabled '[…]'` writes the array as a *string* (corrupts skill
+ * loading), and `hermes skills config` is interactive (unscriptable). So a
+ * targeted one-line text edit is the only safe writer.
+ */
+export function writeDisabledSkills(ids: string[]): void {
+  for (const id of ids) {
+    if (!SKILL_ID.test(id)) throw new Error(`unsafe skill id: ${id}`);
+  }
+
+  const text = fs.readFileSync(CONFIG_FILE, "utf8");
+  const eol = text.includes("\r\n") ? "\r\n" : "\n";
+  const lines = text.split(/\r?\n/);
+
+  // 1. Locate the top-level `skills:` block.
+  let skillsIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (/^skills:\s*$/.test(lines[i])) {
+      skillsIdx = i;
+      break;
+    }
+  }
+  if (skillsIdx === -1) throw new Error("skills: block not found in config.yaml");
+
+  // 2. Within its indented children, find the `disabled:` key.
+  let disabledIdx = -1;
+  let indent = "  ";
+  for (let i = skillsIdx + 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.trim() === "") continue;
+    const lead = /^(\s*)/.exec(line)![1];
+    if (lead.length === 0) break; // next top-level key → end of block
+    const m = /^(\s+)disabled:/.exec(line);
+    if (m) {
+      disabledIdx = i;
+      indent = m[1];
+      break;
+    }
+  }
+  if (disabledIdx === -1) throw new Error("skills.disabled key not found");
+
+  // 3. Consume a following block-list form (`  - item`) if present.
+  let endIdx = disabledIdx;
+  const childIndent = indent + "  ";
+  for (let i = disabledIdx + 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.startsWith(childIndent) && line.trim().startsWith("-")) endIdx = i;
+    else break;
+  }
+
+  // 4. Replace with an inline flow sequence (always one line).
+  const value = ids.length ? `[${ids.join(", ")}]` : "[]";
+  lines.splice(disabledIdx, endIdx - disabledIdx + 1, `${indent}disabled: ${value}`);
+  fs.writeFileSync(CONFIG_FILE, lines.join(eol));
+}
