@@ -2,6 +2,7 @@ import { execFile } from "node:child_process";
 import os from "node:os";
 import { HERMES_BIN, LOCAL_BIN } from "@/lib/hermes/paths";
 import { isApiReady, streamChat, type ChatMessage } from "@/lib/hermes/api";
+import { resolveAgent } from "@/lib/hermes/agents";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,11 +33,18 @@ function buildPrompt(messages: Msg[]): string {
   ].join("\n");
 }
 
-function runHermesCli(prompt: string): Promise<{ ok: boolean; text: string }> {
+function runHermesCli(
+  prompt: string,
+  agent: { provider: string; model: string } | null
+): Promise<{ ok: boolean; text: string }> {
+  // --provider/-m route THIS call through the picked agent without touching the
+  // sticky config default; array args keep it shell-injection-proof.
+  const args = ["chat", "-q", prompt, "-Q", "--source", "tool"];
+  if (agent) args.push("--provider", agent.provider, "-m", agent.model);
   return new Promise((resolve) => {
     execFile(
       HERMES_BIN,
-      ["chat", "-q", prompt, "-Q", "--source", "tool"],
+      args,
       {
         cwd: os.homedir(),
         timeout: 150_000,
@@ -67,7 +75,7 @@ function frame(event: string, data: unknown): Uint8Array {
 }
 
 export async function POST(req: Request) {
-  let body: { messages?: Msg[]; sessionId?: string };
+  let body: { messages?: Msg[]; sessionId?: string; provider?: string; model?: string };
   try {
     body = await req.json();
   } catch {
@@ -80,13 +88,21 @@ export async function POST(req: Request) {
     return Response.json({ error: "Boş mesaj." }, { status: 400 });
   }
 
+  // Per-agent override: validated server-side against the authed provider pool +
+  // its model cache. Invalid/absent → null → sticky config default.
+  const agent = resolveAgent(body.provider, body.model);
+
   const apiUp = await isApiReady();
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const send = (event: string, data: unknown) =>
         controller.enqueue(frame(event, data));
-      send("meta", { source: apiUp ? "api" : "cli" });
+      send("meta", {
+        source: apiUp ? "api" : "cli",
+        provider: agent?.provider ?? null,
+        model: agent?.model ?? null,
+      });
 
       try {
         if (apiUp) {
@@ -95,7 +111,11 @@ export async function POST(req: Request) {
             content: m.content,
           }));
           await streamChat(
-            { messages: apiMessages, sessionId: body.sessionId },
+            {
+              messages: apiMessages,
+              sessionId: body.sessionId,
+              model: agent?.model,
+            },
             {
               onChunk: (t) => send("chunk", t),
               onToolProgress: (t) => send("tool", t),
@@ -105,7 +125,7 @@ export async function POST(req: Request) {
             }
           );
         } else {
-          const result = await runHermesCli(buildPrompt(messages));
+          const result = await runHermesCli(buildPrompt(messages), agent);
           if (!result.ok) send("error", result.text);
           else send("chunk", result.text);
         }

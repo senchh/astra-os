@@ -181,6 +181,20 @@ export interface ProviderInfo {
   isDefault: boolean; // == config model.provider
 }
 
+/**
+ * A selectable "agent" on /chat — one per authed provider. Picking one routes a
+ * single conversation through that provider+model transiently (CLI -m/--provider),
+ * never touching the sticky config default (that's /control's job).
+ */
+export interface AgentOption {
+  provider: string; // credential-pool id, e.g. "xai-oauth"
+  label: string; // friendly name, e.g. "Grok"
+  status: CredStatus; // rolled-up key health — the observability touch on each pill
+  models: string[]; // selectable models for this provider
+  defaultModel: string; // preselected model for the pill
+  isDefault: boolean; // the sticky config default provider (its pill = no override)
+}
+
 export interface GatewayPlatform {
   name: string;
   state: string; // connected | …
