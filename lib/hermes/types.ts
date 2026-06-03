@@ -75,6 +75,43 @@ export interface SourceUsage {
   tokens: number;
 }
 
+// ── Sessions browser (/sessions — state.db + FTS5 search) ────────
+export interface SessionListItem {
+  id: string;
+  source: string; // cli | cron | telegram | webui
+  model: string;
+  title: string | null;
+  startedAt: number; // epoch seconds
+  endedAt: number | null;
+  messageCount: number;
+  totalTokens: number; // input + output + reasoning
+  costLabel: string;
+}
+
+// A search result: a session whose messages matched the FTS query.
+export interface SessionSearchHit extends SessionListItem {
+  matchCount: number; // matching messages in the fetched window
+  snippet: string; // FTS snippet() with [match] markers
+}
+
+export interface SessionMessage {
+  id: number;
+  role: string; // user | assistant | tool | system
+  content: string;
+  toolName: string | null;
+  timestamp: number; // epoch seconds
+  tokenCount: number;
+}
+
+export interface SessionDetail {
+  meta: SessionListItem & {
+    provider: string;
+    endReason: string | null;
+    toolCalls: number;
+  };
+  messages: SessionMessage[];
+}
+
 export interface KanbanTask {
   id: string;
   title: string;

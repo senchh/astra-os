@@ -4,7 +4,10 @@ import type {
   DayBucket,
   ModelUsage,
   Run,
+  SessionDetail,
+  SessionListItem,
   SessionMeta,
+  SessionSearchHit,
   SourceUsage,
 } from "./types";
 
@@ -13,17 +16,22 @@ import type {
 // state.db is the canonical token/cost ledger. The old reader parsed
 // ~/.hermes/sessions/*.json, whose `total_tokens` was always 0 (the "token 0"
 // bug) — the real per-session tokens live here. process.getBuiltinModule reaches
-// the real builtin even from a bundled (Turbopack) server module.
-function queryState(sql: string): any[] {
+// the real builtin even from a bundled (Turbopack) server module. Bind params
+// are passed through to a prepared statement — required for the FTS search, where
+// the query is user input (no string interpolation into SQL, ever).
+function queryState(sql: string, params: any[] = []): any[] {
   try {
     const { DatabaseSync } = process.getBuiltinModule("node:sqlite") as {
       DatabaseSync: new (
         path: string,
         opts?: { readOnly?: boolean }
-      ) => { prepare(sql: string): { all(): any[] }; close(): void };
+      ) => {
+        prepare(sql: string): { all(...p: any[]): any[] };
+        close(): void;
+      };
     };
     const db = new DatabaseSync(STATE_DB, { readOnly: true });
-    const rows = db.prepare(sql).all();
+    const rows = db.prepare(sql).all(...params);
     db.close();
     return rows;
   } catch {
@@ -100,6 +108,123 @@ export function readSourceUsage(): SourceUsage[] {
     runs: Number(r.runs) || 0,
     tokens: Number(r.tokens) || 0,
   }));
+}
+
+// ── Sessions browser (/sessions) ────────────────────────────────
+
+const VALID_SOURCES = new Set(["cli", "cron", "telegram", "webui"]);
+
+function toListItem(r: any): SessionListItem {
+  return {
+    id: String(r.id),
+    source: r.source ?? "—",
+    model: r.model ?? "unknown",
+    title: r.title ?? null,
+    startedAt: Number(r.started_at) || 0,
+    endedAt: r.ended_at != null ? Number(r.ended_at) : null,
+    messageCount: Number(r.message_count) || 0,
+    totalTokens:
+      (Number(r.input_tokens) || 0) +
+      (Number(r.output_tokens) || 0) +
+      (Number(r.reasoning_tokens) || 0),
+    costLabel: costLabel(r.cost_status, r.estimated_cost_usd),
+  };
+}
+
+const LIST_COLS =
+  "id, source, model, title, started_at, ended_at, message_count, input_tokens, output_tokens, reasoning_tokens, estimated_cost_usd, cost_status";
+
+// Each whitespace term becomes a quoted FTS phrase (implicit AND). Quoting every
+// term means user punctuation can never be interpreted as FTS query syntax —
+// combined with bind params, the search input is fully inert.
+function ftsQuery(raw: string): string | null {
+  const terms = raw.trim().split(/\s+/).filter(Boolean).slice(0, 8);
+  if (!terms.length) return null;
+  return terms.map((t) => `"${t.replace(/"/g, '""')}"`).join(" ");
+}
+
+function safeSource(source: string | null): string | null {
+  return source && VALID_SOURCES.has(source) ? source : null;
+}
+
+/** Recent sessions for the browse view (no query). */
+export function listSessions(source: string | null = null, limit = 60): SessionListItem[] {
+  const src = safeSource(source);
+  const rows = queryState(
+    `SELECT ${LIST_COLS} FROM sessions${src ? " WHERE source = ?" : ""} ORDER BY started_at DESC LIMIT ?`,
+    src ? [src, limit] : [limit]
+  );
+  return rows.map(toListItem);
+}
+
+/**
+ * Full-text search across every message (cli/cron/telegram/webui), grouped to the
+ * sessions that matched. snippet() can't run under GROUP BY, so we fetch matching
+ * messages newest-first and fold them into sessions in JS — keeping the most
+ * recent snippet per session and counting matches in the window.
+ */
+export function searchSessions(
+  raw: string,
+  source: string | null = null,
+  limit = 60
+): SessionSearchHit[] {
+  const q = ftsQuery(raw);
+  if (!q) return [];
+  const src = safeSource(source);
+  const rows = queryState(
+    `SELECT m.session_id id, s.source, s.model, s.title, s.started_at, s.ended_at,
+       s.message_count, s.input_tokens, s.output_tokens, s.reasoning_tokens,
+       s.estimated_cost_usd, s.cost_status,
+       snippet(messages_fts, 0, '[', ']', '…', 12) snip, m.timestamp ts
+     FROM messages_fts f
+     JOIN messages m ON m.id = f.rowid
+     JOIN sessions s ON s.id = m.session_id
+     WHERE messages_fts MATCH ?${src ? " AND s.source = ?" : ""}
+     ORDER BY m.timestamp DESC
+     LIMIT ?`,
+    src ? [q, src, 400] : [q, 400]
+  );
+
+  const map = new Map<string, SessionSearchHit>();
+  for (const r of rows) {
+    const id = String(r.id);
+    const hit = map.get(id);
+    if (hit) {
+      hit.matchCount += 1;
+      continue;
+    }
+    map.set(id, { ...toListItem(r), matchCount: 1, snippet: String(r.snip ?? "") });
+  }
+  return [...map.values()].slice(0, limit);
+}
+
+/** Full transcript + meta for one session. */
+export function readSessionDetail(id: string): SessionDetail | null {
+  const meta = queryState(
+    `SELECT ${LIST_COLS}, billing_provider, end_reason, tool_call_count FROM sessions WHERE id = ? LIMIT 1`,
+    [id]
+  )[0];
+  if (!meta) return null;
+  const msgs = queryState(
+    "SELECT id, role, content, tool_name, timestamp, token_count FROM messages WHERE session_id = ? ORDER BY timestamp ASC, id ASC",
+    [id]
+  );
+  return {
+    meta: {
+      ...toListItem(meta),
+      provider: meta.billing_provider ?? "unknown",
+      endReason: meta.end_reason ?? null,
+      toolCalls: Number(meta.tool_call_count) || 0,
+    },
+    messages: msgs.map((m) => ({
+      id: Number(m.id),
+      role: String(m.role ?? ""),
+      content: String(m.content ?? ""),
+      toolName: m.tool_name ?? null,
+      timestamp: Number(m.timestamp) || 0,
+      tokenCount: Number(m.token_count) || 0,
+    })),
+  };
 }
 
 function dayKey(iso: string): string | null {
