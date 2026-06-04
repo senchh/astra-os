@@ -2,6 +2,7 @@ import { readControlRoom } from "@/lib/hermes/control";
 import { readPerfMetrics } from "@/lib/hermes/metrics";
 import { StatCard } from "@/components/overview/stat-card";
 import { ProviderModelSelect } from "@/components/control/provider-model-select";
+import { GatewayControl } from "@/components/control/gateway-control";
 import { SendComposer } from "@/components/control/send-composer";
 import { readSendTargets } from "@/lib/hermes/send";
 import { relTime } from "@/lib/utils";
@@ -170,7 +171,6 @@ export default function Page() {
   const perf = readPerfMetrics();
   const sendTargets = readSendTargets();
   const healthy = cr.providers.filter((p) => p.status === "ok").length;
-  const gatewayUp = cr.gateway.state === "running";
   const hasPerf = perf.totalCalls > 0;
 
   // Health of the provider serving the default model — "is the AI I'm using working?".
@@ -245,36 +245,7 @@ export default function Page() {
       <section className="grid gap-4 lg:grid-cols-2">
         <div className="panel p-4">
           <div className="label">gateway &amp; kanallar</div>
-          <div className="mt-3 flex items-center gap-2.5">
-            <Dot
-              color={gatewayUp ? "var(--color-green)" : "var(--color-faint)"}
-            />
-            <span className="text-sm text-fg">
-              {gatewayUp ? "Gateway çalışıyor" : `Gateway: ${cr.gateway.state}`}
-            </span>
-            {cr.gateway.updatedAt && (
-              <span className="ml-auto text-xs text-faint">
-                {relTime(cr.gateway.updatedAt)}
-              </span>
-            )}
-          </div>
-          <div className="mt-3 space-y-2">
-            {cr.gateway.platforms.length === 0 && (
-              <div className="text-xs text-faint">Bağlı kanal yok.</div>
-            )}
-            {cr.gateway.platforms.map((pl) => {
-              const up = pl.state === "connected";
-              return (
-                <div key={pl.name} className="flex items-center gap-2.5 text-sm">
-                  <Dot
-                    color={up ? "var(--color-green)" : "var(--color-amber)"}
-                  />
-                  <span className="capitalize text-fg">{pl.name}</span>
-                  <span className="ml-auto text-xs text-muted">{pl.state}</span>
-                </div>
-              );
-            })}
-          </div>
+          <GatewayControl gateway={cr.gateway} />
         </div>
 
         <div className="panel p-4">
