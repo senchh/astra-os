@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
-import { Orbit, Clock, Activity, Moon, Target, MessageSquare, SlidersHorizontal, KanbanSquare, Wrench, Brain, Settings, Users, Blocks, History } from "lucide-react";
+import { Orbit, Clock, Activity, Moon, Target, MessageSquare, SlidersHorizontal, KanbanSquare, Wrench, Brain, Settings, Users, Blocks, History, Rocket } from "lucide-react";
 
 const ITEMS = [
   { href: "/", label: "Mission Control", icon: Orbit, hint: "genel bakış · orrery" },
   { href: "/chat", label: "Hermes", icon: MessageSquare, hint: "canlı sohbet · sesli" },
+  { href: "/run", label: "Run", icon: Rocket, hint: "görev çalıştır · tek seferlik" },
   { href: "/board", label: "Board", icon: KanbanSquare, hint: "kanban · görev panosu" },
   { href: "/control", label: "Control Room", icon: SlidersHorizontal, hint: "sağlayıcı · anahtar · gateway" },
   { href: "/memory", label: "Memory", icon: Brain, hint: "notlar · profil · persona (soul)" },

@@ -264,6 +264,19 @@ export interface SendTarget {
   target: string; // the `--to` value, e.g. "telegram:-1004294152788:3"
 }
 
+// ── Run a task (action trigger: one-shot agent run via `hermes -z`) ──
+export interface TaskRunResult {
+  ok: boolean;
+  text: string;
+  error?: string;
+  durationMs: number;
+  toolset: string | null; // the `-t` scope this run used (null = all tools)
+  newImages: string[]; // artifacts the run produced (basenames in ~/.hermes/images)
+  model: string | null; // resolved from the run's ledger row (best-effort)
+  tokens: number | null; // total tokens for the run (best-effort, from state.db)
+  toolCalls: number | null; // tool-call count for the run (best-effort)
+}
+
 // ── Tools (toolsets, from `hermes tools list`) ──────────────────
 export interface Toolset {
   id: string;
