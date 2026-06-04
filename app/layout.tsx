@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Sora } from "next/font/google";
 import "./globals.css";
 import { NavRail } from "@/components/shell/nav-rail";
 import { TopBar } from "@/components/shell/top-bar";
@@ -7,6 +7,8 @@ import { CommandMenu } from "@/components/shell/command-menu";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+// Display face for the cinematic hero — geometric, distinctive, not a system font.
+const sora = Sora({ variable: "--font-sora", subsets: ["latin"], weight: ["300", "400", "600", "700"] });
 
 export const metadata: Metadata = {
   title: "Astra OS — Mission Control",
@@ -17,7 +19,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="tr" className={`${geistSans.variable} ${geistMono.variable} h-full`}>
+    <html lang="tr" className={`${geistSans.variable} ${geistMono.variable} ${sora.variable} h-full`}>
       <body className="h-full">
         <div className="flex h-full">
           <NavRail />

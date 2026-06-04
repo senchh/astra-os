@@ -1,13 +1,41 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Command } from "lucide-react";
 
 function openPalette() {
   window.dispatchEvent(new CustomEvent("astra:palette"));
 }
 
+const TITLES: Record<string, string> = {
+  "/": "Mission Control",
+  "/control": "Control Room",
+  "/activity": "Activity",
+  "/sessions": "Sessions",
+  "/chat": "Hermes",
+  "/run": "Run",
+  "/board": "Board",
+  "/cron": "Cron",
+  "/tools": "Tools",
+  "/skills": "Skills",
+  "/profiles": "Profiles",
+  "/memory": "Memory",
+  "/dream": "Dream",
+  "/goals": "Goals",
+  "/settings": "Settings",
+};
+
+function titleFor(path: string): string {
+  if (path === "/") return TITLES["/"];
+  const key = Object.keys(TITLES)
+    .filter((k) => k !== "/")
+    .find((k) => path.startsWith(k));
+  return key ? TITLES[key] : "Astra OS";
+}
+
 export function TopBar() {
+  const pathname = usePathname();
   const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -30,11 +58,12 @@ export function TopBar() {
 
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-edge bg-bg-2/50 px-5">
-      <div className="flex items-baseline gap-3">
-        <span className="text-sm font-semibold tracking-wide">
-          ASTRA<span className="text-cyan"> OS</span>
-        </span>
-        <span className="label">operator · local</span>
+      <div className="flex items-center gap-2.5">
+        <span className="label">operator</span>
+        <span className="text-faint">/</span>
+        <span className="text-faint">local</span>
+        <span className="text-faint">/</span>
+        <span className="text-sm font-medium text-fg">{titleFor(pathname)}</span>
       </div>
 
       <div className="flex items-center gap-3">

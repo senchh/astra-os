@@ -28,7 +28,7 @@ export default async function Page({
       </Link>
 
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">{dream.title}</h1>
+        <h1 className="font-display text-[26px] font-semibold tracking-tight">{dream.title}</h1>
         <p className="mt-1 label">
           {dream.date} · {relTime(dream.date)}
         </p>

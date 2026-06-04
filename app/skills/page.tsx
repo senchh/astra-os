@@ -10,7 +10,7 @@ export default function Page() {
   return (
     <div className="mx-auto max-w-7xl space-y-5 p-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Skills</h1>
+        <h1 className="font-display text-[26px] font-semibold tracking-tight">Skills</h1>
         <p className="mt-1 text-sm text-muted">
           Hermes&apos;in yüklü yetenek kataloğu — her biri ihtiyaç anında ajana enjekte edilen bir
           talimat seti. Devre dışı bırakmak skill&apos;i ajanın bağlamından çıkarır (token tasarrufu,

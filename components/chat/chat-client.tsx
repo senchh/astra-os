@@ -347,15 +347,13 @@ export default function ChatClient({ agents }: { agents: AgentOption[] }) {
     <div className="flex h-full">
       {/* History rail */}
       <aside className="hidden w-60 shrink-0 flex-col border-r border-edge md:flex">
-        <div className="flex items-center justify-between px-3 py-3">
-          <span className="label">Sohbetler</span>
+        <div className="p-3">
           <button
             onClick={newChat}
             disabled={loading}
-            title="Yeni sohbet"
-            className="grid h-7 w-7 place-items-center rounded-lg border border-edge text-muted transition-colors hover:border-cyan/40 hover:text-fg disabled:opacity-40"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-edge bg-panel px-3 py-2 text-xs font-medium text-muted transition-colors hover:border-cyan/40 hover:text-fg disabled:opacity-40"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-3.5 w-3.5" /> Yeni sohbet
           </button>
         </div>
 
@@ -409,16 +407,21 @@ export default function ChatClient({ agents }: { agents: AgentOption[] }) {
                       onClick={() => loadChat(c)}
                       className="block w-full text-left"
                     >
-                      <div
-                        className={cn(
-                          "truncate pr-10 text-xs",
-                          active ? "text-fg" : "text-muted group-hover:text-fg"
-                        )}
-                      >
-                        {c.title}
+                      <div className="flex items-center gap-1.5 pr-10">
+                        <span className="shrink-0 rounded border border-edge px-1 py-px text-[8px] font-semibold uppercase tracking-wider text-faint">
+                          {labelOf(c.provider)}
+                        </span>
+                        <span
+                          className={cn(
+                            "truncate text-xs",
+                            active ? "text-fg" : "text-muted group-hover:text-fg"
+                          )}
+                        >
+                          {c.title}
+                        </span>
                       </div>
-                      <div className="mt-0.5 truncate text-[0.625rem] text-faint">
-                        {relTime(c.updatedAt)} · {labelOf(c.provider)}
+                      <div className="mt-1 truncate text-[0.625rem] text-faint">
+                        {c.messages.length} mesaj · {relTime(c.updatedAt)}
                       </div>
                     </button>
                     <div className="absolute right-1.5 top-2 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
@@ -451,27 +454,18 @@ export default function ChatClient({ agents }: { agents: AgentOption[] }) {
       {/* Chat column */}
       <div className="mx-auto flex h-full max-w-3xl flex-1 flex-col p-6">
         <header className="shrink-0">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Hermes</h1>
-              <p className="mt-1 text-sm text-muted">
-                Ajanınla canlı sohbet — yaz ya da mikrofonla konuş.
-              </p>
-            </div>
-            <button
-              onClick={newChat}
-              disabled={loading}
-              title="Yeni sohbet"
-              className="flex shrink-0 items-center gap-1.5 rounded-lg border border-edge px-2.5 py-1.5 text-xs text-muted transition-colors hover:border-cyan/40 hover:text-fg disabled:opacity-40 md:hidden"
-            >
-              <Plus className="h-3.5 w-3.5" /> Yeni
-            </button>
-          </div>
-
-          {/* Agent pills — the health dot is the observability touch the reference
-              lacks: you pick an agent while seeing whether its keys can answer. */}
+          {/* Agent pills as the ACTIVE MODEL selector — the health dot is the
+              observability touch: pick an agent while seeing if its keys can answer. */}
           {agents.length > 0 && (
-            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <button
+                onClick={newChat}
+                disabled={loading}
+                title="Yeni sohbet"
+                className="flex shrink-0 items-center gap-1.5 rounded-full border border-edge px-3 py-1 text-xs text-muted transition-colors hover:border-cyan/40 hover:text-fg disabled:opacity-40 md:hidden"
+              >
+                <Plus className="h-3.5 w-3.5" /> Yeni
+              </button>
               {agents.map((a) => {
                 const active = a.provider === selProvider;
                 return (
@@ -527,15 +521,32 @@ export default function ChatClient({ agents }: { agents: AgentOption[] }) {
         {/* Transcript */}
         <div ref={scrollRef} className="mt-5 min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
           {messages.length === 0 && (
-            <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-              <Sparkles className="h-8 w-8 text-faint" strokeWidth={1.5} />
-              <p className="text-sm text-muted">
-                {activeLabel}&apos;e bir şey sor.
-                <br />
-                <span className="text-faint">
-                  Mikrofon ikonuna basıp konuşabilirsin (Türkçe).
-                </span>
-              </p>
+            <div className="relative flex h-full min-h-[320px] items-center justify-center overflow-hidden rounded-2xl border border-edge">
+              <div className="hero-space absolute inset-0" />
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: "radial-gradient(circle at 50% 55%, rgba(34,211,238,0.14), transparent 62%)",
+                }}
+              />
+              {/* faint orbit motif */}
+              <svg
+                className="absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 opacity-30"
+                viewBox="0 0 200 200"
+              >
+                <ellipse cx="100" cy="100" rx="92" ry="40" fill="none" stroke="var(--color-cyan)" strokeOpacity="0.3" />
+                <ellipse cx="100" cy="100" rx="66" ry="28" fill="none" stroke="var(--color-cyan)" strokeOpacity="0.18" />
+              </svg>
+              <div className="relative z-10 px-6 text-center">
+                <div className="label text-cyan">Hermes-Agent</div>
+                <h2 className="mt-3 font-display text-[52px] font-bold leading-none tracking-tight text-fg">
+                  Hermes
+                </h2>
+                <p className="mt-4 text-sm text-muted">
+                  Yeni bir konuşma başlat —{" "}
+                  <span className="text-faint">yaz ya da mikrofonla konuş ({activeLabel}).</span>
+                </p>
+              </div>
             </div>
           )}
 

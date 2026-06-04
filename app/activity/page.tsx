@@ -77,7 +77,7 @@ export default function Page() {
   return (
     <div className="mx-auto max-w-6xl space-y-5 p-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Activity</h1>
+        <h1 className="font-display text-[26px] font-semibold tracking-tight">Activity</h1>
         <p className="mt-1 text-sm text-muted">
           Her run, token muhasebesi ve model dağılımı —{" "}
           <code className="font-mono text-cyan">state.db</code> üzerinden.

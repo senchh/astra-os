@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Astra — A · Instrument</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#06090f; --bg2:#080d16; --panel:#0b121e; --edge:#17223a; --edge2:#202f4d;
+    --fg:#e8eef7; --muted:#76849f; --faint:#445268;
+    --cyan:#27d3ee; --amber:#f5a524; --green:#36d399; --red:#f77; --violet:#a78bfa;
+    --mono:'IBM Plex Mono',ui-monospace,monospace; --sans:'IBM Plex Sans',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--fg); font-family:var(--sans);
+    -webkit-font-smoothing:antialiased; font-feature-settings:"tnum" 1, "ss01" 1;
+    position:relative;
+  }
+  /* fine engineering grid + grain */
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:linear-gradient(var(--edge) 1px,transparent 1px),linear-gradient(90deg,var(--edge) 1px,transparent 1px);
+    background-size:48px 48px; opacity:.13; mask-image:radial-gradient(120% 90% at 70% 0%,#000 30%,transparent 80%);}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.04;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+  .app{display:grid;grid-template-columns:60px 1fr;height:100vh;position:relative;z-index:1}
+  /* rail */
+  .rail{border-right:1px solid var(--edge);display:flex;flex-direction:column;align-items:center;gap:3px;padding:14px 0;background:linear-gradient(180deg,var(--bg2),transparent)}
+  .rail .logo{width:34px;height:34px;border:1px solid var(--edge2);display:grid;place-items:center;color:var(--cyan);margin-bottom:14px;font-family:var(--mono);font-weight:600}
+  .rail i{width:38px;height:34px;display:grid;place-items:center;color:var(--faint);font-family:var(--mono);font-size:11px}
+  .rail i.on{color:var(--cyan);border-left:2px solid var(--cyan);background:#0c1422}
+  /* topbar */
+  .top{display:flex;align-items:center;justify-content:space-between;height:52px;padding:0 22px;border-bottom:1px solid var(--edge)}
+  .brand{display:flex;align-items:baseline;gap:12px}
+  .brand b{font-family:var(--mono);font-weight:600;letter-spacing:.32em;font-size:13px}
+  .brand b u{color:var(--cyan);text-decoration:none}
+  .brand span{font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--faint);text-transform:uppercase}
+  .topr{display:flex;align-items:center;gap:18px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .pill{display:flex;align-items:center;gap:7px;color:var(--green);letter-spacing:.12em;text-transform:uppercase;font-size:10px}
+  .pill .d{width:6px;height:6px;border-radius:99px;background:var(--green);box-shadow:0 0 0 3px rgba(54,211,153,.14)}
+  .clock b{color:var(--fg)} .clock span{color:var(--faint)}
+  .kbd{border:1px solid var(--edge2);padding:3px 7px;color:var(--muted);font-size:10px}
+  /* main */
+  main{padding:26px 30px;overflow:auto;height:calc(100vh - 52px)}
+  .hd{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--edge);padding-bottom:16px;margin-bottom:22px}
+  .hd h1{font-family:var(--mono);font-weight:500;font-size:24px;letter-spacing:.02em}
+  .hd h1 b{color:var(--faint);font-weight:400}
+  .hd p{font-size:12.5px;color:var(--muted);margin-top:6px;max-width:520px;line-height:1.5}
+  .hd .ts{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--faint);text-transform:uppercase;text-align:right;line-height:1.7}
+  .hd .ts b{color:var(--cyan)}
+  /* stat row */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--edge);margin-bottom:24px}
+  .stat{padding:16px 18px;border-right:1px solid var(--edge);position:relative}
+  .stat:last-child{border-right:0}
+  .stat .l{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase}
+  .stat .v{font-family:var(--mono);font-weight:500;font-size:30px;margin-top:12px;letter-spacing:-.01em}
+  .stat .s{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:6px}
+  .stat .v.c{color:var(--cyan)} .stat .v.a{color:var(--amber)} .stat .v.g{color:var(--green)}
+  .stat .tick{position:absolute;top:16px;right:16px;width:5px;height:5px;background:var(--green);border-radius:99px;box-shadow:0 0 0 3px rgba(54,211,153,.12)}
+  /* grid 2col */
+  .row{display:grid;grid-template-columns:1.4fr 1fr;gap:18px}
+  .card{border:1px solid var(--edge);background:var(--panel);position:relative}
+  .card .ch{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--edge)}
+  .card .ch .l{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase}
+  .card .ch .r{font-family:var(--mono);font-size:10px;color:var(--faint)}
+  /* orrery */
+  .orrery{height:330px;display:grid;place-items:center;position:relative;overflow:hidden}
+  .orrery svg{width:100%;height:100%}
+  .ring{fill:none;stroke:var(--edge2);stroke-width:1}
+  .ring.dash{stroke-dasharray:2 6;stroke:var(--edge2)}
+  .node{fill:var(--bg);stroke-width:1.4}
+  .lbl{font-family:var(--mono);font-size:9px;letter-spacing:.12em;fill:var(--muted);text-transform:uppercase}
+  .center{fill:var(--bg2);stroke:var(--cyan);stroke-width:1.4}
+  .ctext{font-family:var(--mono);font-size:9px;letter-spacing:.16em;fill:var(--cyan);text-anchor:middle}
+  /* provider/latency rows */
+  .prow{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--edge);font-family:var(--mono);font-size:12px}
+  .prow:last-child{border-bottom:0}
+  .prow .nm{color:var(--fg);min-width:96px}
+  .prow .d{width:6px;height:6px;border-radius:99px}
+  .prow .p50{margin-left:auto;color:var(--muted)} .prow .p50 b{color:var(--fg)}
+  .spark{height:22px;width:84px}
+  .muted{color:var(--muted)} .faint{color:var(--faint)}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="rail">
+    <div class="logo">A</div>
+    <i class="on">◎</i><i>▣</i><i>⤬</i><i>⊞</i><i>◍</i><i>�‹</i><i>⏱</i><i>∿</i><i>☾</i>
+  </nav>
+  <div>
+    <header class="top">
+      <div class="brand"><b>ASTRA<u> OS</u></b><span>operator · local</span></div>
+      <div class="topr">
+        <span class="pill"><span class="d"></span>all systems</span>
+        <span class="clock"><b>18:45:08</b> <span>· 04.06.2026</span></span>
+        <span class="kbd">⌘K</span>
+      </div>
+    </header>
+    <main>
+      <div class="hd">
+        <div>
+          <h1>Mission Control<b> / orrery</b></h1>
+          <p>Ajan yığını tek yörüngede. Canlı gecikme, anahtar sağlığı ve teslimat — gerçek zamanlı.</p>
+        </div>
+        <div class="ts">SESSION 137<br><b>UPTIME 5H 12M</b><br>GROK-4.3 · XAI-OAUTH</div>
+      </div>
+
+      <section class="stats">
+        <div class="stat"><div class="tick"></div><div class="l">Aktif ajan</div><div class="v">04</div><div class="s muted">claude · hermes · openclaw · obsidian</div></div>
+        <div class="stat"><div class="l">p50 yanıt</div><div class="v c">3.9<span class="faint" style="font-size:16px">s</span></div><div class="s muted">p95 6.6s · 1.2k çağrı</div></div>
+        <div class="stat"><div class="l">Bugün token</div><div class="v">11.8<span class="faint" style="font-size:16px">M</span></div><div class="s muted">cli · cron · telegram · webui</div></div>
+        <div class="stat"><div class="l">Sağlıklı sağlayıcı</div><div class="v a">2<span class="faint">/5</span></div><div class="s muted">2 tükendi · 1 hata</div></div>
+      </section>
+
+      <section class="row">
+        <div class="card">
+          <div class="ch"><span class="l">the orrery — ajan haritası</span><span class="r">4 NODE · LIVE</span></div>
+          <div class="orrery">
+            <svg viewBox="0 0 560 330">
+              <ellipse class="ring" cx="280" cy="165" rx="70" ry="52"/>
+              <ellipse class="ring dash" cx="280" cy="165" rx="135" ry="100"/>
+              <ellipse class="ring" cx="280" cy="165" rx="205" ry="150"/>
+              <!-- center -->
+              <circle class="center" cx="280" cy="165" r="26"/>
+              <text class="ctext" x="280" y="168">OPERATOR</text>
+              <!-- nodes -->
+              <g>
+                <circle class="node" cx="350" cy="165" r="7" stroke="#f5a524"/>
+                <text class="lbl" x="362" y="168">claude</text>
+              </g>
+              <g>
+                <circle class="node" cx="170" cy="95" r="7" stroke="#27d3ee"/>
+                <text class="lbl" x="120" y="86">hermes</text>
+              </g>
+              <g>
+                <circle class="node" cx="100" cy="225" r="7" stroke="#fb7185"/>
+                <text class="lbl" x="44" y="228">openclaw</text>
+              </g>
+              <g>
+                <circle class="node" cx="470" cy="120" r="7" stroke="#a78bfa"/>
+                <text class="lbl" x="430" y="106">obsidian</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ch"><span class="l">sağlayıcı gecikme</span><span class="r">SON 1200 ÇAĞRI</span></div>
+          <div class="prow"><span class="d" style="background:var(--green)"></span><span class="nm">xai-oauth</span>
+            <svg class="spark" viewBox="0 0 84 22"><polyline fill="none" stroke="#36d399" stroke-width="1.5" points="0,15 12,12 24,16 36,9 48,13 60,7 72,10 84,6"/></svg>
+            <span class="p50"><b>2.8s</b> p50</span></div>
+          <div class="prow"><span class="d" style="background:var(--green)"></span><span class="nm">gemini</span>
+            <svg class="spark" viewBox="0 0 84 22"><polyline fill="none" stroke="#36d399" stroke-width="1.5" points="0,12 12,14 24,10 36,13 48,8 60,12 72,9 84,11"/></svg>
+            <span class="p50"><b>3.4s</b> p50</span></div>
+          <div class="prow"><span class="d" style="background:var(--amber)"></span><span class="nm">gpt-5.5</span>
+            <svg class="spark" viewBox="0 0 84 22"><polyline fill="none" stroke="#f5a524" stroke-width="1.5" points="0,8 12,11 24,7 36,12 48,10 60,14 72,11 84,15"/></svg>
+            <span class="p50"><b>5.7s</b> p50</span></div>
+          <div class="prow"><span class="d" style="background:var(--red)"></span><span class="nm">openai-codex</span>
+            <span class="muted" style="margin-left:auto;font-size:10.5px">TÜKENDİ · 429 · 3g</span></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</body>
+</html>

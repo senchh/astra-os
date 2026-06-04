@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Astra — B · Editorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Hanken+Grotesk:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#080c15; --bg2:#0b111d; --panel:#0e1525; --panel2:#121b2e; --edge:#1d2840; --edge2:#28365a;
+    --fg:#eef2f9; --muted:#8492ad; --faint:#4a5876;
+    --cyan:#22d3ee; --amber:#f59e0b; --green:#34d399; --red:#f87171; --violet:#a78bfa;
+    --serif:'Instrument Serif',serif; --sans:'Hanken Grotesk',sans-serif; --mono:'Geist Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(1200px 800px at 88% -10%,rgba(34,211,238,.10),transparent 58%),
+      radial-gradient(1000px 720px at -8% 110%,rgba(167,139,250,.09),transparent 55%),
+      var(--bg);
+    color:var(--fg);font-family:var(--sans);-webkit-font-smoothing:antialiased;
+  }
+  .app{display:grid;grid-template-columns:64px 1fr;height:100vh}
+  .rail{border-right:1px solid var(--edge);display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 0}
+  .rail .logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(145deg,#11203a,#0c1422);border:1px solid var(--edge2);display:grid;place-items:center;color:var(--cyan);font-family:var(--serif);font-size:22px;margin-bottom:14px}
+  .rail i{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;color:var(--faint);font-size:15px}
+  .rail i.on{color:var(--cyan);background:var(--panel)}
+  .top{display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 28px}
+  .brand{display:flex;align-items:baseline;gap:13px}
+  .brand b{font-family:var(--sans);font-weight:700;letter-spacing:.02em;font-size:16px}
+  .brand b u{color:var(--cyan);text-decoration:none}
+  .brand span{font-size:11px;letter-spacing:.16em;color:var(--faint);text-transform:uppercase;font-weight:500}
+  .topr{display:flex;align-items:center;gap:20px;font-size:12px;color:var(--muted)}
+  .pill{display:flex;align-items:center;gap:8px;color:var(--green);font-size:11px;font-weight:600;letter-spacing:.04em}
+  .pill .d{width:7px;height:7px;border-radius:99px;background:var(--green);box-shadow:0 0 12px var(--green)}
+  .clock{font-family:var(--mono);font-size:12px}.clock b{color:var(--fg)}.clock span{color:var(--faint)}
+  .kbd{border:1px solid var(--edge2);border-radius:7px;padding:4px 9px;font-size:11px;font-family:var(--mono)}
+  main{padding:30px 40px;overflow:auto;height:calc(100vh - 60px)}
+  .hd{margin-bottom:28px}
+  .hd h1{font-family:var(--serif);font-weight:400;font-size:46px;line-height:1;letter-spacing:.005em}
+  .hd h1 em{font-style:italic;color:var(--cyan)}
+  .hd p{font-size:14.5px;color:var(--muted);margin-top:12px;max-width:560px;line-height:1.55}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:26px}
+  .stat{border:1px solid var(--edge);border-radius:16px;padding:18px 20px;position:relative;overflow:hidden;
+    background:linear-gradient(165deg,var(--panel2),var(--panel))}
+  .stat::after{content:"";position:absolute;inset:0;border-radius:16px;padding:1px;background:linear-gradient(160deg,rgba(34,211,238,.18),transparent 45%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+  .stat .l{font-size:11px;letter-spacing:.04em;color:var(--muted);font-weight:600;text-transform:uppercase}
+  .stat .v{font-family:var(--serif);font-weight:400;font-size:42px;line-height:1;margin-top:16px}
+  .stat .v small{font-family:var(--sans);font-size:17px;color:var(--faint);font-weight:600}
+  .stat .v.c{color:var(--cyan)}.stat .v.a{color:var(--amber)}
+  .stat .s{font-size:11.5px;color:var(--faint);margin-top:10px}
+  .stat .mini{position:absolute;right:18px;bottom:16px;width:70px;height:26px}
+  .row{display:grid;grid-template-columns:1.45fr 1fr;gap:20px}
+  .card{border:1px solid var(--edge);border-radius:18px;background:linear-gradient(180deg,var(--panel2),var(--panel));overflow:hidden}
+  .card .ch{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--edge)}
+  .card .ch h3{font-family:var(--serif);font-weight:400;font-size:20px}
+  .card .ch .r{font-size:11px;color:var(--faint);font-family:var(--mono);letter-spacing:.06em}
+  .orrery{height:320px;display:grid;place-items:center;position:relative}
+  .orrery svg{width:100%;height:100%}
+  .ring{fill:none;stroke:var(--edge2)}
+  .center{fill:url(#cg);stroke:var(--cyan);stroke-width:1.5;filter:drop-shadow(0 0 18px rgba(34,211,238,.5))}
+  .ctext{font-family:var(--sans);font-weight:700;font-size:9px;letter-spacing:.18em;fill:#06202a;text-anchor:middle}
+  .node{filter:drop-shadow(0 0 8px currentColor)}
+  .lbl{font-family:var(--sans);font-size:11px;font-weight:600;fill:var(--muted)}
+  .prow{display:flex;align-items:center;gap:13px;padding:15px 20px;border-bottom:1px solid var(--edge)}
+  .prow:last-child{border-bottom:0}
+  .prow .nm{font-weight:600;font-size:13.5px;min-width:100px}
+  .prow .d{width:8px;height:8px;border-radius:99px}
+  .prow .p50{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--muted)}.prow .p50 b{color:var(--fg)}
+  .spark{height:24px;width:90px}
+  .muted{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="rail">
+    <div class="logo">A</div>
+    <i class="on">◎</i><i>✦</i><i>▦</i><i>◈</i><i>❖</i><i>⏱</i><i>∿</i><i>☾</i>
+  </nav>
+  <div>
+    <header class="top">
+      <div class="brand"><b>Astra<u> OS</u></b><span>operator · local</span></div>
+      <div class="topr">
+        <span class="pill"><span class="d"></span>all systems</span>
+        <span class="clock"><b>18:45</b> <span>04 Haz 2026</span></span>
+        <span class="kbd">⌘K</span>
+      </div>
+    </header>
+    <main>
+      <div class="hd">
+        <h1>Mission <em>Control</em></h1>
+        <p>Tüm ajan yığının tek yörüngede. Canlı gecikme, anahtar sağlığı ve teslimat — gözlemevinden izle, oradan yönet.</p>
+      </div>
+
+      <section class="stats">
+        <div class="stat"><div class="l">Aktif ajan</div><div class="v">4</div><div class="s">claude · hermes · openclaw · obsidian</div></div>
+        <div class="stat"><div class="l">p50 yanıt</div><div class="v c">3.9<small>s</small></div><div class="s">p95 6.6s · 1.2k çağrı</div>
+          <svg class="mini" viewBox="0 0 70 26"><polyline fill="none" stroke="#22d3ee" stroke-width="1.6" points="0,18 10,14 20,17 30,9 40,12 50,7 60,10 70,5"/></svg></div>
+        <div class="stat"><div class="l">Bugün token</div><div class="v">11.8<small>M</small></div><div class="s">cli · cron · telegram · webui</div>
+          <svg class="mini" viewBox="0 0 70 26"><polyline fill="none" stroke="#a78bfa" stroke-width="1.6" points="0,20 10,16 20,18 30,12 40,14 50,8 60,9 70,4"/></svg></div>
+        <div class="stat"><div class="l">Sağlıklı sağlayıcı</div><div class="v a">2<small>/5</small></div><div class="s">2 tükendi · 1 hata</div></div>
+      </section>
+
+      <section class="row">
+        <div class="card">
+          <div class="ch"><h3>The Orrery</h3><span class="r">4 NODE · LIVE</span></div>
+          <div class="orrery">
+            <svg viewBox="0 0 560 320">
+              <defs><radialGradient id="cg" cx="50%" cy="40%"><stop offset="0%" stop-color="#0a2b35"/><stop offset="100%" stop-color="#06151d"/></radialGradient></defs>
+              <ellipse class="ring" cx="280" cy="160" rx="72" ry="54" stroke-width="1"/>
+              <ellipse class="ring" cx="280" cy="160" rx="140" ry="104" stroke-width="1" stroke-dasharray="1 7"/>
+              <ellipse class="ring" cx="280" cy="160" rx="210" ry="152" stroke-width="1"/>
+              <circle class="center" cx="280" cy="160" r="28"/>
+              <text class="ctext" x="280" y="163">OPERATOR</text>
+              <circle class="node" cx="352" cy="160" r="8" fill="#f59e0b" color="#f59e0b"/><text class="lbl" x="366" y="164">Claude</text>
+              <circle class="node" cx="168" cy="88" r="8" fill="#22d3ee" color="#22d3ee"/><text class="lbl" x="112" y="80">Hermes</text>
+              <circle class="node" cx="96" cy="220" r="8" fill="#fb7185" color="#fb7185"/><text class="lbl" x="36" y="224">OpenClaw</text>
+              <circle class="node" cx="472" cy="116" r="8" fill="#a78bfa" color="#a78bfa"/><text class="lbl" x="430" y="100">Obsidian</text>
+            </svg>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ch"><h3>Gecikme</h3><span class="r">SON 1200 ÇAĞRI</span></div>
+          <div class="prow"><span class="d" style="background:var(--green);box-shadow:0 0 10px var(--green)"></span><span class="nm">xai-oauth</span>
+            <svg class="spark" viewBox="0 0 90 24"><polyline fill="none" stroke="#34d399" stroke-width="1.6" points="0,16 13,13 26,17 39,10 52,14 65,8 78,11 90,7"/></svg>
+            <span class="p50"><b>2.8s</b></span></div>
+          <div class="prow"><span class="d" style="background:var(--green);box-shadow:0 0 10px var(--green)"></span><span class="nm">gemini</span>
+            <svg class="spark" viewBox="0 0 90 24"><polyline fill="none" stroke="#34d399" stroke-width="1.6" points="0,13 13,15 26,11 39,14 52,9 65,13 78,10 90,12"/></svg>
+            <span class="p50"><b>3.4s</b></span></div>
+          <div class="prow"><span class="d" style="background:var(--amber);box-shadow:0 0 10px var(--amber)"></span><span class="nm">gpt-5.5</span>
+            <svg class="spark" viewBox="0 0 90 24"><polyline fill="none" stroke="#f59e0b" stroke-width="1.6" points="0,9 13,12 26,8 39,13 52,11 65,15 78,12 90,16"/></svg>
+            <span class="p50"><b>5.7s</b></span></div>
+          <div class="prow"><span class="d" style="background:var(--red);box-shadow:0 0 10px var(--red)"></span><span class="nm">openai-codex</span>
+            <span class="p50" style="color:var(--red)">TÜKENDİ · 3g</span></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</body>
+</html>

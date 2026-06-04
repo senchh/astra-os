@@ -39,9 +39,19 @@ const EMPTY: PerfMetrics = {
   totalCalls: 0,
   p50: 0,
   p95: 0,
+  cacheHitPct: null,
   lastCallAt: null,
+  series: [],
   byProvider: {},
 };
+
+// Down-sample a latency list to ~n evenly-spaced points for a compact sparkline.
+function sample(values: number[], n = 24): number[] {
+  if (values.length <= n) return values.map(round1);
+  const out: number[] = [];
+  for (let i = 0; i < n; i++) out.push(round1(values[Math.floor((i * values.length) / n)]));
+  return out;
+}
 
 export function readPerfMetrics(): PerfMetrics {
   let text: string;
@@ -101,14 +111,25 @@ export function readPerfMetrics(): PerfMetrics {
       p95: pct(lat, 0.95),
       cacheHitPct,
       lastCallAt: safeISO(cs[cs.length - 1].ts),
+      series: sample(cs.map((c) => c.latency)), // chronological (cs is in log order)
     };
   }
+
+  // Overall cache hit, weighted across calls that reported a cache ratio.
+  const cacheCalls = recent.filter((c) => c.cacheTotal);
+  const overallCache = cacheCalls.length
+    ? Math.round(
+        (100 * cacheCalls.reduce((s, c) => s + c.cacheHit! / c.cacheTotal!, 0)) / cacheCalls.length
+      )
+    : null;
 
   return {
     totalCalls: recent.length,
     p50: pct(allLat, 0.5),
     p95: pct(allLat, 0.95),
+    cacheHitPct: overallCache,
     lastCallAt: safeISO(calls[calls.length - 1].ts),
+    series: sample(recent.map((c) => c.latency), 48),
     byProvider,
   };
 }

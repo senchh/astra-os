@@ -188,7 +188,7 @@ export default function Page() {
   return (
     <div className="mx-auto max-w-6xl space-y-5 p-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Control Room</h1>
+        <h1 className="font-display text-[26px] font-semibold tracking-tight">Control Room</h1>
         <p className="mt-1 text-sm text-muted">
           Sağlayıcılar, kimlik anahtarları ve gateway — tek panelde.
         </p>

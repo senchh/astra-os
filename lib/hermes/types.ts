@@ -293,12 +293,15 @@ export interface ProviderPerf {
   p95: number; // seconds
   cacheHitPct: number | null;
   lastCallAt: string | null; // ISO
+  series: number[]; // recent per-call latencies (oldest→newest) for sparklines
 }
 
 export interface PerfMetrics {
   totalCalls: number; // sample size (recent window)
   p50: number;
   p95: number;
+  cacheHitPct: number | null; // overall, call-weighted
   lastCallAt: string | null;
+  series: number[]; // recent overall latencies (oldest→newest)
   byProvider: Record<string, ProviderPerf>;
 }
