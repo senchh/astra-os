@@ -344,7 +344,7 @@ export default function ChatClient({ agents }: { agents: AgentOption[] }) {
   }
 
   return (
-    <div className="flex h-full">
+    <div className="fade-in flex h-full">
       {/* History rail */}
       <aside className="hidden w-60 shrink-0 flex-col border-r border-edge md:flex">
         <div className="p-3">

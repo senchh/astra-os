@@ -81,7 +81,7 @@ export default function Page() {
   ];
 
   return (
-    <div className="hero-space relative flex h-full min-h-0 flex-col">
+    <div className="fade-in hero-space relative flex h-full min-h-0 flex-col">
       <TelemetryTicker cells={cells} />
 
       <div className="relative min-h-[560px] flex-1 overflow-hidden">
