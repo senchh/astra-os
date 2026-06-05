@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Globe,
   Image as ImageIcon,
@@ -12,10 +12,21 @@ import {
   Cpu,
   Wrench,
   AlertCircle,
+  History,
+  Trash2,
+  ImageIcon as ImgBadge,
 } from "lucide-react";
 import { TASK_PRESETS } from "@/lib/hermes/task-presets";
 import type { TaskRunResult } from "@/lib/hermes/types";
-import { cn, compactNum } from "@/lib/utils";
+import {
+  loadRuns,
+  addRun,
+  removeRun,
+  clearRuns,
+  newRunId,
+  type StoredRun,
+} from "@/lib/run-history";
+import { cn, compactNum, relTime } from "@/lib/utils";
 
 const ICONS: Record<string, typeof Globe> = {
   Globe,
@@ -34,6 +45,15 @@ export function RunLauncher({ model, provider }: { model: string; provider: stri
   const [input, setInput] = useState("");
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<TaskRunResult | null>(null);
+  const [history, setHistory] = useState<StoredRun[]>([]);
+  const [activeRunId, setActiveRunId] = useState<string | null>(null);
+
+  // Run history is local-first (localStorage) — load it after mount. The rAF
+  // defers the setState out of the effect body (avoids cascading-render lint).
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setHistory(loadRuns()));
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
   const preset = TASK_PRESETS.find((p) => p.id === presetId) ?? TASK_PRESETS[0];
 
@@ -42,6 +62,7 @@ export function RunLauncher({ model, provider }: { model: string; provider: stri
     if (!text || running) return;
     setRunning(true);
     setResult(null);
+    setActiveRunId(null);
     try {
       const res = await fetch("/api/run", {
         method: "POST",
@@ -50,6 +71,20 @@ export function RunLauncher({ model, provider }: { model: string; provider: stri
       });
       const data = (await res.json()) as TaskRunResult & { error?: string };
       setResult(data);
+      // Persist every completed run (ok or agent-failure) — skip only the
+      // network-level catch below, which never reached the agent.
+      const id = newRunId();
+      setHistory(
+        addRun({
+          id,
+          createdAt: Date.now(),
+          presetId: preset.id,
+          presetLabel: preset.label,
+          input: text,
+          result: data,
+        }),
+      );
+      setActiveRunId(id);
     } catch {
       setResult({
         ok: false,
@@ -64,6 +99,21 @@ export function RunLauncher({ model, provider }: { model: string; provider: stri
       });
     } finally {
       setRunning(false);
+    }
+  }
+
+  function openRun(r: StoredRun) {
+    setPresetId(r.presetId);
+    setInput(r.input);
+    setResult(r.result);
+    setActiveRunId(r.id);
+  }
+
+  function deleteRun(id: string) {
+    setHistory(removeRun(id));
+    if (activeRunId === id) {
+      setActiveRunId(null);
+      setResult(null);
     }
   }
 
@@ -158,6 +208,76 @@ export function RunLauncher({ model, provider }: { model: string; provider: stri
 
       {/* result */}
       {result && <ResultPanel result={result} />}
+
+      {/* local run history (Astra-local, localStorage) */}
+      {history.length > 0 && (
+        <div className="panel overflow-hidden">
+          <div className="flex items-center justify-between border-b border-edge px-4 py-2.5">
+            <span className="label inline-flex items-center gap-1.5">
+              <History className="h-3.5 w-3.5" /> son çalışmalar
+            </span>
+            <button
+              onClick={() => {
+                setHistory(clearRuns());
+                setActiveRunId(null);
+              }}
+              className="text-[0.625rem] text-faint transition-colors hover:text-red"
+            >
+              temizle
+            </button>
+          </div>
+          <div className="divide-y divide-edge">
+            {history.map((r) => {
+              const active = r.id === activeRunId;
+              const secs = (r.result.durationMs / 1000).toFixed(1);
+              return (
+                <div
+                  key={r.id}
+                  className={cn(
+                    "group flex items-center gap-3 px-4 py-2.5 transition-colors",
+                    active ? "bg-panel-2/60" : "hover:bg-panel-2/40",
+                  )}
+                >
+                  {active && <span className="-ml-4 h-8 w-0.5 shrink-0 rounded-full bg-cyan" />}
+                  <button
+                    onClick={() => openRun(r)}
+                    className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                  >
+                    <span
+                      className={cn(
+                        "h-1.5 w-1.5 shrink-0 rounded-full",
+                        r.result.ok ? "bg-green" : "bg-red",
+                      )}
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm text-fg">{r.input}</span>
+                      <span className="flex flex-wrap items-center gap-x-2 text-[0.625rem] text-faint">
+                        <span className="text-muted">{r.presetLabel}</span>
+                        <span>· {secs}s</span>
+                        {r.result.tokens != null && <span>· {compactNum(r.result.tokens)} tok</span>}
+                        {r.result.newImages.length > 0 && (
+                          <span className="inline-flex items-center gap-0.5">
+                            · <ImgBadge className="h-2.5 w-2.5" />
+                            {r.result.newImages.length}
+                          </span>
+                        )}
+                        <span>· {relTime(r.createdAt)}</span>
+                      </span>
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => deleteRun(r.id)}
+                    title="Sil"
+                    className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-faint opacity-0 transition hover:bg-panel-2 hover:text-red group-hover:opacity-100"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
