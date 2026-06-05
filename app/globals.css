@@ -44,8 +44,77 @@
     radial-gradient(620px 520px at 6% 98%, rgba(34, 211, 238, 0.04), transparent 55%),
     #05080f;
 }
+/* subtle ambient glow behind interior screens (home overpaints with .hero-space) */
+.app-ambient {
+  background:
+    radial-gradient(1100px 720px at 92% -12%, rgba(34, 211, 238, 0.05), transparent 60%),
+    radial-gradient(900px 680px at -8% 112%, rgba(167, 139, 250, 0.055), transparent 55%);
+}
 .font-display {
   font-family: var(--font-display);
+}
+
+/* ── cinematic entrance motion (pure CSS — no remount, no JS) ──────────── */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes draw-x {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+.rise-in {
+  animation: rise-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* staggered reveal of a page's top-level sections — "systems coming online" */
+.stagger-in > * {
+  animation: rise-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.stagger-in > *:nth-child(1) {
+  animation-delay: 0.04s;
+}
+.stagger-in > *:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.stagger-in > *:nth-child(3) {
+  animation-delay: 0.16s;
+}
+.stagger-in > *:nth-child(4) {
+  animation-delay: 0.22s;
+}
+.stagger-in > *:nth-child(5) {
+  animation-delay: 0.28s;
+}
+.stagger-in > *:nth-child(n + 6) {
+  animation-delay: 0.32s;
+}
+
+/* the PageHeader hairline draws itself in from the left */
+.hairline-draw {
+  transform-origin: left center;
+  animation: draw-x 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.18s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise-in,
+  .stagger-in > *,
+  .hairline-draw {
+    animation: none;
+  }
 }
 
 html,

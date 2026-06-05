@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Moon } from "lucide-react";
 import { readDreams } from "@/lib/hermes/dreams";
+import { PageHeader } from "@/components/shell/page-header";
 import { relTime } from "@/lib/utils";
 
 export const runtime = "nodejs";
@@ -10,13 +11,16 @@ export default function Page() {
   const dreams = readDreams(30);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5 p-6">
-      <header>
-        <h1 className="font-display text-[26px] font-semibold tracking-tight">Dream</h1>
-        <p className="mt-1 text-sm text-muted">
-          Gece üretilen rüya raporları — örüntü analizi ve iyileştirmeler.
-        </p>
-      </header>
+    <div className="mx-auto max-w-4xl space-y-5 p-6 stagger-in">
+      <PageHeader
+        icon={Moon}
+        eyebrow="Self"
+        title="Dream"
+        accent="var(--color-violet)"
+        stats={[{ label: "rapor", value: dreams.length, accent: "var(--color-violet)" }]}
+      >
+        Gece üretilen rüya raporları — örüntü analizi ve iyileştirmeler.
+      </PageHeader>
 
       {dreams.length === 0 ? (
         <div className="panel flex flex-col items-center gap-3 p-12 text-center">

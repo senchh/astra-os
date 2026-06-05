@@ -1,6 +1,8 @@
+import { Activity } from "lucide-react";
 import { summarizeActivity, readRuns, readSourceUsage } from "@/lib/hermes/sessions";
 import { readImages } from "@/lib/hermes/outputs";
 import { StatCard } from "@/components/overview/stat-card";
+import { PageHeader } from "@/components/shell/page-header";
 import { compactNum, relTime, cn } from "@/lib/utils";
 import type { Run } from "@/lib/hermes/types";
 
@@ -75,14 +77,11 @@ export default function Page() {
   const sourceMax = Math.max(1, ...sources.map((s) => s.tokens));
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5 p-6">
-      <header>
-        <h1 className="font-display text-[26px] font-semibold tracking-tight">Activity</h1>
-        <p className="mt-1 text-sm text-muted">
-          Her run, token muhasebesi ve model dağılımı —{" "}
-          <code className="font-mono text-cyan">state.db</code> üzerinden.
-        </p>
-      </header>
+    <div className="mx-auto max-w-6xl space-y-5 p-6 stagger-in">
+      <PageHeader icon={Activity} eyebrow="Mission" title="Activity">
+        Her run, token muhasebesi ve model dağılımı —{" "}
+        <code className="font-mono text-cyan">state.db</code> üzerinden.
+      </PageHeader>
 
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="toplam run" value={a.totalSessions} accent="var(--color-cyan)" />

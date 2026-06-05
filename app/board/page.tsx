@@ -1,5 +1,7 @@
+import { KanbanSquare } from "lucide-react";
 import { readKanban } from "@/lib/hermes/kanban";
 import { StatCard } from "@/components/overview/stat-card";
+import { PageHeader } from "@/components/shell/page-header";
 import { relTime } from "@/lib/utils";
 import type { KanbanTask } from "@/lib/hermes/types";
 
@@ -84,14 +86,11 @@ export default function Page() {
   const doneCount = tasks.filter((t) => t.status === "done").length;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-5 p-6">
-      <header>
-        <h1 className="font-display text-[26px] font-semibold tracking-tight">Board</h1>
-        <p className="mt-1 text-sm text-muted">
-          Hermes çok-ajanlı görev panosu — orkestratör görevi alt görevlere böler ve profillere
-          atar.
-        </p>
-      </header>
+    <div className="mx-auto max-w-7xl space-y-5 p-6 stagger-in">
+      <PageHeader icon={KanbanSquare} eyebrow="Operate" title="Board">
+        Hermes çok-ajanlı görev panosu — orkestratör görevi alt görevlere böler ve profillere
+        atar.
+      </PageHeader>
 
       <section className="grid grid-cols-3 gap-4">
         <StatCard label="toplam görev" value={board.total} accent="var(--color-cyan)" />

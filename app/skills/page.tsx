@@ -1,4 +1,6 @@
+import { Blocks } from "lucide-react";
 import { readSkills } from "@/lib/hermes/skills";
+import { PageHeader } from "@/components/shell/page-header";
 import { SkillsBrowser } from "@/components/skills/skills-browser";
 
 export const runtime = "nodejs";
@@ -8,16 +10,13 @@ export default function Page() {
   const cat = readSkills();
 
   return (
-    <div className="mx-auto max-w-7xl space-y-5 p-6">
-      <header>
-        <h1 className="font-display text-[26px] font-semibold tracking-tight">Skills</h1>
-        <p className="mt-1 text-sm text-muted">
-          Hermes&apos;in yüklü yetenek kataloğu — her biri ihtiyaç anında ajana enjekte edilen bir
-          talimat seti. Devre dışı bırakmak skill&apos;i ajanın bağlamından çıkarır (token tasarrufu,
-          ama yetenek kaybı) — kullanım sayısı neyi kapatmanın güvenli olduğunu gösterir.{" "}
-          <span className="text-faint">(~/.hermes/skills · config.yaml skills.disabled)</span>
-        </p>
-      </header>
+    <div className="mx-auto max-w-7xl space-y-5 p-6 stagger-in">
+      <PageHeader icon={Blocks} eyebrow="Build" title="Skills">
+        Hermes&apos;in yüklü yetenek kataloğu — her biri ihtiyaç anında ajana enjekte edilen bir
+        talimat seti. Devre dışı bırakmak skill&apos;i ajanın bağlamından çıkarır (token tasarrufu,
+        ama yetenek kaybı) — kullanım sayısı neyi kapatmanın güvenli olduğunu gösterir.{" "}
+        <span className="text-faint">(~/.hermes/skills · config.yaml skills.disabled)</span>
+      </PageHeader>
 
       {cat.total === 0 ? (
         <div className="panel p-8 text-center text-sm text-muted">

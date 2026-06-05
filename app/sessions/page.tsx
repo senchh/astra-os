@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Hash, Coins, Wrench } from "lucide-react";
+import { Hash, Coins, Wrench, History } from "lucide-react";
 import {
   listSessions,
   searchSessions,
@@ -197,8 +197,12 @@ export default async function SessionsPage({
       <aside className="flex w-[22rem] shrink-0 flex-col border-r border-edge">
         <div className="space-y-3 p-4">
           <div>
-            <h1 className="text-lg font-semibold tracking-tight">Oturumlar</h1>
-            <p className="mt-0.5 text-xs text-muted">
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-cyan/70">Mission</div>
+            <h1 className="mt-1 flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
+              <History className="h-4 w-4 text-cyan" strokeWidth={1.75} />
+              Oturumlar
+            </h1>
+            <p className="mt-1 text-xs text-muted">
               Tüm ajan etkinliğini ara — cli · cron · telegram · webui.
             </p>
           </div>

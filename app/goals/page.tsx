@@ -1,6 +1,7 @@
 import { Target } from "lucide-react";
 import { readGoals } from "@/lib/hermes/goals";
 import { StatCard } from "@/components/overview/stat-card";
+import { PageHeader } from "@/components/shell/page-header";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,13 +13,10 @@ export default function Page() {
   const pct = total ? Math.round((done / total) * 100) : 0;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5 p-6">
-      <header>
-        <h1 className="font-display text-[26px] font-semibold tracking-tight">Goals</h1>
-        <p className="mt-1 text-sm text-muted">
-          Obsidian vault&apos;una bağlı hedefler.
-        </p>
-      </header>
+    <div className="mx-auto max-w-3xl space-y-5 p-6 stagger-in">
+      <PageHeader icon={Target} eyebrow="Self" title="Goals">
+        Obsidian vault&apos;una bağlı hedefler.
+      </PageHeader>
 
       {total === 0 ? (
         <div className="panel flex flex-col items-center gap-3 p-12 text-center">
