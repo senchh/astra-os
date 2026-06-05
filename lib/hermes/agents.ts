@@ -32,19 +32,27 @@ function labelFor(id: string): string {
     .join(" ");
 }
 
+// Image/video/audio/embedding/etc. models a chat pill should never offer — they
+// live in the same provider cache as chat models (e.g. xai's grok-imagine-*) but
+// can't answer a conversation.
+const NON_CHAT = /(imagine|image|dall|flux|ideogram|diffusion|sdxl|video|veo|sora|embed|tts|whisper|moderation|rerank|speech|transcrib)/i;
+const isChatModel = (id: string) => !NON_CHAT.test(id);
+
 export function readAgents(): AgentOption[] {
   const cr = readControlRoom();
   return cr.providers
-    // Only providers that actually expose models can answer a chat.
-    .filter((p) => p.models.length > 0)
-    .map((p) => ({
+    .map((p) => ({ p, chatModels: p.models.filter(isChatModel) }))
+    // Only providers that expose at least one chat model can answer a chat.
+    .filter(({ chatModels }) => chatModels.length > 0)
+    .map(({ p, chatModels }) => ({
       provider: p.id,
       label: labelFor(p.id),
       status: p.status,
-      models: p.models,
-      // The default provider's pill mirrors the sticky default model; others
-      // preselect their first cached model (the user can change it).
-      defaultModel: p.isDefault ? cr.defaultModel : p.models[0],
+      models: chatModels,
+      // The default provider's pill mirrors the sticky default model (a chat
+      // model); others preselect their first cached chat model.
+      defaultModel:
+        p.isDefault && chatModels.includes(cr.defaultModel) ? cr.defaultModel : chatModels[0],
       isDefault: p.isDefault,
     }))
     // Default agent first, then the order Control Room already sorted by health.
