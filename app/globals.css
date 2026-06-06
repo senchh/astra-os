@@ -85,6 +85,31 @@
   }
 }
 
+/* the hero title settles its weight from hairline → target as it rises in,
+   so the typography reads as "coming alive" rather than just appearing */
+@keyframes wght-settle {
+  from {
+    font-variation-settings: "wght" 200;
+    letter-spacing: 0.03em;
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    font-variation-settings: "wght" var(--wto, 600);
+    letter-spacing: -0.02em;
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.hero-word {
+  display: inline-block;
+  font-variation-settings: "wght" var(--wto, 600);
+  animation: wght-settle 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.hero-word--late {
+  animation-delay: 0.12s;
+}
+
 .rise-in {
   animation: rise-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -127,7 +152,8 @@
   .rise-in,
   .stagger-in > *,
   .hairline-draw,
-  .fade-in {
+  .fade-in,
+  .hero-word {
     animation: none;
   }
 }
@@ -145,6 +171,32 @@ body {
   color: var(--color-fg);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* fixed film-grain overlay — breaks the digital flatness without touching layout.
+   Imperceptible on text (opacity ~0.04, soft-light) but adds depth to surfaces. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
+/* premium selection + keyboard focus — consistent cyan accent everywhere */
+::selection {
+  background: color-mix(in oklab, var(--color-cyan) 32%, transparent);
+  color: var(--color-fg);
+}
+:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--color-cyan) 70%, transparent);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 /* tiny tracked uppercase labels (reference language, our own palette) */
@@ -165,14 +217,62 @@ body {
   border: 1px solid color-mix(in oklab, var(--color-edge) 88%, transparent);
   border-radius: 0.9rem;
   backdrop-filter: blur(10px);
+  /* true glass: navy-tinted drop shadow + a 1px inner edge highlight that
+     simulates light refracting off the top lip of the surface */
+  box-shadow:
+    0 1px 0 0 color-mix(in oklab, var(--color-fg) 6%, transparent) inset,
+    0 18px 40px -24px rgba(2, 6, 16, 0.85);
 }
 
 .panel-hover {
-  transition: border-color 0.2s, background 0.2s, transform 0.2s;
+  position: relative;
+  transition: border-color 0.22s ease, background 0.22s ease, transform 0.22s ease,
+    box-shadow 0.22s ease;
+}
+/* cursor-spotlight border — a gradient ring masked down to the 1px edge, lit
+   where the pointer is (coords fed by SurfaceFX). Sits over the surface but the
+   mask keeps it on the border, so it never touches content. */
+.panel-hover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    150px circle at var(--spot-x, -300px) var(--spot-y, -300px),
+    color-mix(in oklab, var(--color-cyan) 60%, transparent),
+    transparent 72%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+.panel-hover:hover::before {
+  opacity: 1;
 }
 .panel-hover:hover {
   border-color: color-mix(in oklab, var(--color-cyan) 40%, var(--color-edge));
   background: color-mix(in oklab, var(--color-panel-2) 90%, transparent);
+  transform: translateY(-2px);
+  box-shadow:
+    0 1px 0 0 color-mix(in oklab, var(--color-fg) 8%, transparent) inset,
+    0 24px 50px -22px rgba(2, 6, 16, 0.9),
+    0 0 0 1px color-mix(in oklab, var(--color-cyan) 14%, transparent),
+    0 8px 30px -12px color-mix(in oklab, var(--color-cyan) 30%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel-hover:hover {
+    transform: none;
+  }
 }
 
 ::-webkit-scrollbar {

@@ -4,11 +4,14 @@ import "./globals.css";
 import { NavRail } from "@/components/shell/nav-rail";
 import { TopBar } from "@/components/shell/top-bar";
 import { CommandMenu } from "@/components/shell/command-menu";
+import { SurfaceFX } from "@/components/shell/surface-fx";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 // Display face for the cinematic hero — geometric, distinctive, not a system font.
-const sora = Sora({ variable: "--font-sora", subsets: ["latin"], weight: ["300", "400", "600", "700"] });
+// Loaded as a variable font (full wght axis) so the hero title can interpolate
+// weight smoothly during its entrance.
+const sora = Sora({ variable: "--font-sora", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Astra OS — Mission Control",
@@ -29,6 +32,7 @@ export default function RootLayout({
           </div>
         </div>
         <CommandMenu />
+        <SurfaceFX />
       </body>
     </html>
   );

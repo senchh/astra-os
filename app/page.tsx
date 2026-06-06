@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { Sparkles } from "lucide-react";
 import { getAgents } from "@/lib/hermes/health";
 import { summarizeActivity } from "@/lib/hermes/sessions";
@@ -92,10 +93,17 @@ export default function Page() {
 
         {/* hero copy — left */}
         <div className="pointer-events-none absolute left-10 top-12 z-10 max-w-sm">
-          <h1 className="font-display text-[64px] font-light leading-[0.96] tracking-tight">
-            Mission
+          <h1 className="font-display text-[64px] leading-[0.96] tracking-tight">
+            <span className="hero-word" style={{ "--wto": 300 } as CSSProperties}>
+              Mission
+            </span>
             <br />
-            <span className="font-bold text-cyan">Control</span>
+            <span
+              className="hero-word hero-word--late text-cyan"
+              style={{ "--wto": 700 } as CSSProperties}
+            >
+              Control
+            </span>
           </h1>
           <p className="mt-5 text-[15px] leading-relaxed text-muted">
             Her sistem, her model.
